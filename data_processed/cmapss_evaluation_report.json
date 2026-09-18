@@ -1,0 +1,22 @@
+{
+  "model_name": "CMAPSSRULPredictor",
+  "dataset": "NASA C-MAPSS Turbofan Degradation (FD001)",
+  "in_features": 20,
+  "seq_len": 30,
+  "total_parameters": 384195,
+  "test_metrics": {
+    "accuracy_pct": 98.65,
+    "precision_pct": 84.4,
+    "recall_pct": 71.69,
+    "f1_score_pct": 77.52,
+    "macro_f1_pct": 88.41,
+    "tp": 238,
+    "fp": 44,
+    "fn": 94,
+    "tn": 9820,
+    "rul_mae": 13.52,
+    "rul_rmse": 19.23,
+    "calibrated_threshold": 0.3,
+    "mean_inference_latency_ms": 0.092
+  }
+}

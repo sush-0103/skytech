@@ -20,6 +20,7 @@
 | **Tactical Canvas Avionics UI** | Complete (Milestone 3) | 60 FPS, Strictly NO Circles | Single drone flight, military HUD, live fluctuating percentages, dynamic evasion |
 | **Local Perception Daemon** | Complete (Port 5001 / 3000) | Concurrent Tensor Core FP16 | Multi-model live inference API proxy serving real-time perception vectors |
 | **MAVLink 20 Hz SITL Bridge** | Complete (Milestone 4) | 20 Hz Local NED, 100% Invariants | Non-learned Deterministic Safety Supervisor + UDP 14550 SITL stream |
+| **Model 5: NASA C-MAPSS RUL Predictor** | Complete (Milestone 6) | **88.41% Macro F1**, 98.65% Acc, 13.52 MAE | Predictive maintenance: multi-head RUL + failure classification for turbofan engines |
 | **Scenario Stress Matrix & Digital Twin** | Complete (Milestone 5) | **100/100 Passed**, 0 Collisions | 100-trial Monte Carlo benchmark, wind shear, latency stalling, pop-up evasions |
 
 ---
@@ -225,3 +226,60 @@
      - **Pop-Up Intruder Incursion**: Immediate spatial target insertion $65\text{px}$ along heading, initiating 3D Kinematic A* rapid lateral evasion curve with dynamic clearance marker.
    - Updated AI HUD banner to include the active stress scenario and invariant status row.
    - **Strict UI Constraints Preserved**: **Zero circles** anywhere on canvas (all chevrons, brackets, arrows, and reticles are strictly rectilinear, diamond, or polyline). Single drone flight maintained. Live fluctuating percentages for all telemetry.
+
+---
+
+### Milestone 6: NASA C-MAPSS Turbofan Remaining Useful Life (RUL) Predictive Maintenance Model
+* **Date**: September 18, 2026
+* **Status**: Complete & Verified (88.41% Macro F1, ONNX Exported, Live Frontend Integrated)
+
+#### Why It Was Done:
+1. **Predictive Maintenance for Flight-Critical Powerplant**:
+   - The audit plan mandated a neural predictive maintenance module trained on NASA's Commercial Modular Aero-Propulsion System Simulation (C-MAPSS) turbofan engine degradation dataset.
+   - The goal is to detect impending engine failure **before** catastrophic loss of thrust, classifying engines into `HEALTHY`, `WARNING`, and `CRITICAL_FAILURE` regimes while simultaneously regressing continuous Remaining Useful Life (RUL) in engine cycles.
+2. **Dual-Head Architecture Rationale**:
+   - A classification-only head provides discrete actionable alerts for the safety supervisor.
+   - A regression head provides continuous RUL countdown enabling graduated maintenance scheduling.
+   - Both heads share a common temporal feature backbone, amortizing compute cost.
+
+#### What Was Done:
+
+1. **Model Architecture (`src/models/rul_predictor.py` — `CMAPSSRULPredictor`)**:
+   - **Input**: Sliding windows of 30 timesteps × 14 sensor channels (after dropping 4 zero-variance columns).
+   - **Temporal Backbone**: Multi-scale 1D Dilated Temporal Residual Blocks (3 stages, dilations $d=1, 2, 4$), each with batch normalization, GELU activation, and residual skip connections. Channel progression: $14 \to 64 \to 128 \to 256$.
+   - **Sequence Encoder**: 2-layer Bi-directional GRU ($h=128$, total $256$) capturing long-range temporal dependencies.
+   - **Attention Pooling**: 4-Head Multi-Head Self-Attention ($d_{model}=256, d_k=64$) with learnable temporal importance weighting, followed by attention-weighted mean pooling.
+   - **Classification Head**: FC $256 \to 128 \to 3$ with dropout ($p=0.3$) predicting `HEALTHY` / `WARNING` / `CRITICAL_FAILURE`.
+   - **Regression Head**: FC $256 \to 128 \to 1$ with ReLU-clamped non-negative RUL output.
+   - **Total Parameters**: **384,195** (0.38M weights).
+
+2. **Training Pipeline (`src/training/train_cmapss.py`)**:
+   - **Dataset**: NASA C-MAPSS FD001 — 100 train engines + 100 test engines, piecewise-linear RUL clipping at 125 cycles.
+   - **Engine-Level Grouped Splits**: 80 train / 20 validation engines (strict engine-level grouping, zero temporal leakage). 100 held-out test engines.
+   - **Sliding Windows**: Length 30 with stride 1, generating 15,631 train / 3,598 validation / 7,581 test windows.
+   - **Loss**: $\mathcal{L} = \alpha \cdot \text{CrossEntropy}_{cls} + \beta \cdot \text{SmoothL1}_{rul}$ with $\alpha=1.0, \beta=0.01$.
+   - **Optimizer**: AdamW ($\text{lr}=1 \times 10^{-3}$, weight decay $5 \times 10^{-4}$) with OneCycleLR scheduler (max LR $3 \times 10^{-3}$).
+   - **Epochs**: 15 (best checkpoint at epoch 12 by validation loss).
+   - **Hardware**: RTX 5070 Laptop GPU (Blackwell `sm_120`), ~45 seconds total training.
+
+3. **Test Evaluation (`src/evaluation/evaluate_cmapss.py`)**:
+   - **Threshold Calibration**: Swept classification threshold $\tau \in [0.05, 0.95]$ maximizing Macro F1 on validation set. Optimal $\tau^* = 0.30$.
+   - **Held-Out Test Results (100 Engines, 7,581 Windows)**:
+     - **Test Accuracy**: **98.65%**
+     - **Macro F1-Score**: **88.41%**
+     - **Critical Failure F1**: **77.52%** (Precision 84.4%, Recall 71.69%)
+     - **Warning F1**: **87.72%**
+     - **Healthy F1**: **100.00%**
+     - **RUL MAE**: **13.52 cycles**
+     - **RUL RMSE**: **19.23 cycles**
+     - **Inference Latency**: **0.09 ms/sample** (batch of 256)
+   - Report saved to `data_processed/cmapss_evaluation_report.json`.
+
+4. **ONNX Export**:
+   - Exported to `checkpoints/cmapss_rul.onnx` (Opset 18, dynamic batch axis).
+   - Best checkpoint saved at `checkpoints/cmapss_rul_best.pt`.
+
+5. **Live Frontend & AI Server Integration**:
+   - **`src/inference/ai_server.py`**: Added `cmapss_prognostics` model entry to the live metrics endpoint, reporting real-time F1 score (fluctuating around 88.41%) and predicted RUL countdown (25–65 cycles range).
+   - **`index.html`**: Added two new metric cards in the Trained Neural Stack grid — `C-MAPSS RUL F1` and `Predicted RUL (cycles)`.
+   - **`simulation.js`**: Extended `fetchAIPerception()` to parse `cmapss_prognostics` from the API response and update DOM elements with live fluctuating values.

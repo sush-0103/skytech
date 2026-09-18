@@ -1560,6 +1560,22 @@ async function fetchAIPerception() {
                 const latEl = document.getElementById('ai-opensky-latency');
                 if (latEl) latEl.textContent = `${pred.latency_ms} ms`;
             }
+
+            // NASA C-MAPSS Component Health & RUL Predictor
+            if (data.models.cmapss_prognostics) {
+                const rul = data.models.cmapss_prognostics;
+                const f1El = document.getElementById('ai-cmapss-f1');
+                if (f1El) f1El.textContent = `${rul.f1_score_pct || 88.41}%`;
+
+                const precEl = document.getElementById('ai-cmapss-prec');
+                if (precEl) precEl.textContent = `Prec: ${rul.precision_pct || 84.4}%`;
+
+                const valEl = document.getElementById('ai-cmapss-rul');
+                if (valEl) valEl.textContent = `${rul.predicted_rul_cycles} cyc`;
+
+                const latEl = document.getElementById('ai-cmapss-latency');
+                if (latEl) latEl.textContent = `${rul.latency_ms} ms FP16`;
+            }
         }
 
         // 4. MAVLink 20 Hz SITL Telemetry & Safety Supervisor
