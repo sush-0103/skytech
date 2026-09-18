@@ -72,10 +72,7 @@ function initDrones() {
     const cy = ch / 2;
 
     state.drones = [
-        { id: 1, x: cx - 120, y: cy - 80, targetX: cx + 150, targetY: cy + 100, speed: 0.8, heading: 45, color: '#00f0ff', trail: [] },
-        { id: 2, x: cx + 100, y: cy - 120, targetX: cx - 130, targetY: cy + 60, speed: 0.6, heading: 210, color: '#7b61ff', trail: [] },
-        { id: 3, x: cx - 180, y: cy + 60, targetX: cx + 120, targetY: cy - 90, speed: 0.7, heading: 330, color: '#22c55e', trail: [] },
-        { id: 4, x: cx + 60, y: cy + 130, targetX: cx - 80, targetY: cy - 130, speed: 0.5, heading: 120, color: '#eab308', trail: [] },
+        { id: 1, x: cx - 120, y: cy - 80, targetX: cx + 150, targetY: cy + 100, speed: 1.0, heading: 45, color: '#00f0ff', trail: [] }
     ];
 
     // Initialize landing zone positions
@@ -460,29 +457,19 @@ function drawAITacticalObstacles(time) {
     });
 }
 
-function drawKinodynamicKStarTrajectory(drone) {
-    const dx = drone.targetX - drone.x;
-    const dy = drone.targetY - drone.y;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-    if (dist < 5) return;
-
-    // Kinodynamic jerk-limited polynomial curve avoiding building & water
-    const midX = (drone.x + drone.targetX) / 2 + Math.sin(drone.id * 1.5) * 40;
-    const midY = (drone.y + drone.targetY) / 2 - 50;
-
+function drawDroneFlightPath(drone) {
     const x0 = drone.x + state.canvas.offsetX;
     const y0 = drone.y + state.canvas.offsetY;
-    const xm = midX + state.canvas.offsetX;
-    const ym = midY + state.canvas.offsetY;
     const xt = drone.targetX + state.canvas.offsetX;
     const yt = drone.targetY + state.canvas.offsetY;
 
+    // Direct Waypoint Flight Path (no K* dependency)
     ctx.beginPath();
     ctx.moveTo(x0, y0);
-    ctx.quadraticCurveTo(xm, ym, xt, yt);
-    ctx.strokeStyle = drone.color + '55';
-    ctx.lineWidth = 2;
-    ctx.setLineDash([4, 4]);
+    ctx.lineTo(xt, yt);
+    ctx.strokeStyle = drone.color + '80';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([5, 5]);
     ctx.stroke();
     ctx.setLineDash([]);
 
@@ -494,6 +481,12 @@ function drawKinodynamicKStarTrajectory(drone) {
     ctx.strokeStyle = '#ffffff';
     ctx.lineWidth = 1;
     ctx.stroke();
+
+    // Label
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '9px JetBrains Mono';
+    ctx.textAlign = 'left';
+    ctx.fillText('WP-TARGET', xt + 7, yt + 3);
 }
 
 function drawAIHUD(w, h) {
@@ -601,10 +594,10 @@ function render(timestamp) {
     drawLandingZones();
     drawAITacticalObstacles(timestamp);
 
-    // Draw active drones and kinodynamic trajectories
+    // Draw active drones and flight path
     if (state.drones && state.drones.length > 0) {
         state.drones.forEach(drone => {
-            drawKinodynamicKStarTrajectory(drone);
+            drawDroneFlightPath(drone);
             drawDrone(drone, timestamp);
         });
         if (state.simulation.running) {
