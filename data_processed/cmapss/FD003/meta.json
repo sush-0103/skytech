@@ -1,0 +1,10 @@
+{
+  "subset": "FD003",
+  "train_engines": 100,
+  "test_engines": 100,
+  "train_cycles": 24720,
+  "test_cycles": 16596,
+  "active_feature_count": 20,
+  "dropped_constant_features": 4,
+  "rul_cap": 125
+}

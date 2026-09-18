@@ -1,0 +1,100 @@
+{
+  "dataset": "VisDrone2019-DET",
+  "taxonomy": {
+    "0": "person",
+    "1": "car",
+    "2": "van",
+    "3": "truck",
+    "4": "bicycle",
+    "5": "motorized_two_wheeler",
+    "6": "bus",
+    "7": "trailer",
+    "8": "tricycle",
+    "9": "awning_tricycle"
+  },
+  "splits": {
+    "train": {
+      "total_images": 6471,
+      "total_raw_rows": 353550,
+      "valid_target_boxes": 343204,
+      "ignore_boxes": 10343,
+      "quarantined_zero_area": 3,
+      "class_counts": {
+        "0": 106396,
+        "1": 144866,
+        "2": 24956,
+        "3": 12875,
+        "4": 10480,
+        "5": 29647,
+        "6": 5926,
+        "7": 0,
+        "8": 4812,
+        "9": 3246
+      }
+    },
+    "val": {
+      "total_images": 548,
+      "total_raw_rows": 40169,
+      "valid_target_boxes": 38759,
+      "ignore_boxes": 1410,
+      "quarantined_zero_area": 0,
+      "class_counts": {
+        "0": 13969,
+        "1": 14064,
+        "2": 1975,
+        "3": 750,
+        "4": 1287,
+        "5": 4886,
+        "6": 251,
+        "7": 0,
+        "8": 1045,
+        "9": 532
+      }
+    },
+    "test-dev": {
+      "total_images": 1610,
+      "total_raw_rows": 77547,
+      "valid_target_boxes": 75102,
+      "ignore_boxes": 2445,
+      "quarantined_zero_area": 0,
+      "class_counts": {
+        "0": 27382,
+        "1": 28074,
+        "2": 5771,
+        "3": 2659,
+        "4": 1302,
+        "5": 5845,
+        "6": 2940,
+        "7": 0,
+        "8": 530,
+        "9": 599
+      }
+    }
+  },
+  "quarantined_boxes": [
+    {
+      "dataset": "VisDrone",
+      "split": "train",
+      "file": "0000293_03401_d_0000939.txt",
+      "line": 130,
+      "raw": "1008,374,3,0,0,0,0,0",
+      "reason": "zero or negative width/height"
+    },
+    {
+      "dataset": "VisDrone",
+      "split": "train",
+      "file": "9999985_00000_d_0000020.txt",
+      "line": 12,
+      "raw": "611,158,4,0,1,4,0,0",
+      "reason": "zero or negative width/height"
+    },
+    {
+      "dataset": "VisDrone",
+      "split": "train",
+      "file": "9999999_00590_d_0000267.txt",
+      "line": 89,
+      "raw": "545,414,10,0,0,0,0,0",
+      "reason": "zero or negative width/height"
+    }
+  ]
+}

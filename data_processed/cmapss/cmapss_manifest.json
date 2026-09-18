@@ -1,0 +1,42 @@
+{
+  "FD001": {
+    "subset": "FD001",
+    "train_engines": 100,
+    "test_engines": 100,
+    "train_cycles": 20631,
+    "test_cycles": 13096,
+    "active_feature_count": 20,
+    "dropped_constant_features": 4,
+    "rul_cap": 125
+  },
+  "FD002": {
+    "subset": "FD002",
+    "train_engines": 260,
+    "test_engines": 259,
+    "train_cycles": 53759,
+    "test_cycles": 33991,
+    "active_feature_count": 24,
+    "dropped_constant_features": 0,
+    "rul_cap": 125
+  },
+  "FD003": {
+    "subset": "FD003",
+    "train_engines": 100,
+    "test_engines": 100,
+    "train_cycles": 24720,
+    "test_cycles": 16596,
+    "active_feature_count": 20,
+    "dropped_constant_features": 4,
+    "rul_cap": 125
+  },
+  "FD004": {
+    "subset": "FD004",
+    "train_engines": 249,
+    "test_engines": 248,
+    "train_cycles": 61249,
+    "test_cycles": 41214,
+    "active_feature_count": 24,
+    "dropped_constant_features": 0,
+    "rul_cap": 125
+  }
+}

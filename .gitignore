@@ -1,9 +1,32 @@
 # Datasets - too large for git
+Datasets/
+Datasets/*
 *.zip
 05_VisDrone_detection_tracking/
 03_OpenSky_flight_telemetry/
 02_Dubai_aerial_segmentation/
 04_AUAIR_multimodal_uav/
+
+# Processed images and large label folders
+data_processed/dubai/images/
+data_processed/dubai/masks_indexed/
+data_processed/visdrone/train/
+data_processed/visdrone/val/
+data_processed/visdrone/test-dev/
+data_processed/auair/labels/
+data_processed/cmapss/*/*.npy
+
+# Binary PyTorch checkpoints (>25MB)
+checkpoints/*.pt
+
+# Python cache & virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+build/
+dist/
 
 # OS
 Thumbs.db
