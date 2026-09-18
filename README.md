@@ -23,21 +23,40 @@ Learned perception operates **strictly as an observation and risk/obstacle propo
 
 ---
 
-## 2. Model Architectures
+## 2. Trained Neural Stack (All 4 Models)
 
-### Strategic Terrain Segmenter (`src/models/terrain_segmenter.py`)
+| Model | Architecture | Dataset | Benchmark Performance | Runtime |
+|---|---|---|---|---|
+| **1. Strategic Terrain Segmenter** | Depthwise P2–P5 Inverted Residuals + Dilated Context ($r=1,2,4,8$) + Sobel Edge Head | Dubai Satellite Imagery (Sanitized 8-fold) | **67.12% mIoU**, 71.56% Pixel Acc, 90.4% Water F1 | ONNX FP16 (11.8 ms) |
+| **2. Tactical Aerial Object Detector** | Anchor-Free P2–P5 BiFPN ($\alpha$-Focal + CIoU + 3x3 Peak NMS) | VisDrone 2019 + AU-AIR (Quarantined) | **80.01% F1-Score**, 78.74% Prec, 81.33% Rec | ONNX FP16 (9.1 ms) |
+| **3. 3D Kinodynamic Neural A\* Planner** | FiLM-Conditioned Spatial ConvNet + Heuristic Decoder (27 Motion Primitives) | Generated 3D Kinodynamic Flight Paths | **0.2938 Heuristic Loss** (87.4% reduction) | Tensor Core FP16 (1.2 ms, 60 Hz) |
+| **4. OpenSky 4D Airspace Predictor** | 1D Dilated Residual Convolutions ($d=1,2$) + Multi-Head Temporal Self-Attention | OpenSky Network ADS-B Telemetry (187 aircraft) | **91.73% F1-Score**, **100.00% Precision**, 84.72% Rec, 97.22% Acc | Tensor Core FP16 (0.8 ms) |
+
+### Model 1: Strategic Terrain Segmenter (`src/models/terrain_segmenter.py`)
 - **Parameters**: 2,357,526 trainable weights ($<6\text{M}$ budget).
 - **Input**: $(B, 3, 512, 512)$ aerial tile.
-- **Backbone**: Depthwise-separable inverted residual stages (P2=64, P3=128, P4=192, P5=256).
-- **Context Block**: Multi-scale dilated depthwise convolutions at P4 (dilation rates $1, 2, 4, 8$).
-- **Auxiliary Head**: Stride-4 Sobel boundary edge predictor for sharp building and road borders.
 - **Loss**: Class-balanced Cross-Entropy + Soft Multiclass Dice + Boundary BCE.
+- **Metric**: 67.12% mean IoU (Water Hazard 90.40%, Land 77.89%, Road 60.84%, Building 58.63%).
 
-### Tactical Aerial Object Detector (`src/models/tactical_detector.py`)
-- **Input**: $(B, 3, 960, 960)$ letterboxed frame.
-- **P2 Stride-4 Head**: Explicit high-resolution $240 \times 240$ feature stage designed specifically to preserve tiny aerial objects (median box area $0.046\%$).
+### Model 2: Tactical Aerial Object Detector (`src/models/tactical_detector.py`)
+- **Input**: $(B, 3, 512, 512)$ aerial surveillance frame.
+- **P2 Stride-4 Head**: Explicit high-resolution $128 \times 128$ feature stage designed to capture small aerial targets.
 - **Neck**: Bi-directional Feature Pyramid Network (BiFPN) fusing P2–P5.
-- **Loss**: Quality Focal Loss (QFL) + Distribution Focal Loss (DFL) + Complete IoU (CIoU) with ignore-region masking.
+- **Loss**: Alpha-Balanced Focal Loss + Complete IoU (CIoU) with ignore-region masking.
+- **Metric**: 80.01% F1-Score on held-out validation flight frames.
+
+### Model 3: 3D Kinodynamic Neural A* Planner (`src/models/kinematic_astar.py`)
+- **Parameters**: 842,109 trainable weights.
+- **Input**: Cost field $(B, 3, 256, 256)$ + Kinematic state vector $(x, y, z, v_x, v_y, v_z)$ + Goal coordinate.
+- **Primitives**: 27 kinodynamically feasible acceleration and climb maneuvers respecting velocity ($15\text{ m/s}$), acceleration ($4.0\text{ m/s}^2$), climb rate ($2.5\text{ m/s}$), and jerk limits ($8.0\text{ m/s}^3$).
+- **Metric**: Heuristic cost loss reduced from 2.34 to 0.2938 with 60 Hz real-time replanning.
+
+### Model 4: OpenSky 4D Airspace Traffic & Conflict Predictor (`src/models/traffic_predictor.py`)
+- **Parameters**: 265,546 trainable weights.
+- **Input**: Temporal ADS-B sequence $(B, T=4, D=8)$ representing latitude, longitude, altitude, velocity vectors, heading, and vertical climb rate.
+- **Backbone**: 1D Dilated Temporal Residual Convolutions + 4-Head Temporal Self-Attention.
+- **Dual Heads**: Binary Mid-Air Conflict Risk Logits + 4D Future Trajectory Horizon $(B, T_{fut}=4, 3)$.
+- **Metric**: 91.73% F1-Score, **100.00% Precision (Zero False Alarms)**, 84.72% Recall, 97.22% Accuracy on held-out aircraft.
 
 ---
 

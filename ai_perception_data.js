@@ -52,6 +52,18 @@ const aiPerceptionData = {
             loss: "0.2938 (87.4% reduction)",
             runtime: "Tensor Core FP16 (1.2 ms)",
             replanRate: "60 Hz Real-Time Collision Avoidance"
+        },
+        airspacePredictor: {
+            name: "OpenSky 4D Airspace Traffic & Conflict Predictor",
+            architecture: "1D Dilated Temporal Residual Convolutions + Multi-Head Self-Attention",
+            parameters: "265,546 (0.27M)",
+            inputShape: "1x4x8 (4 snapshots, 8 kinematic ADS-B features)",
+            accuracy: "97.22%",
+            f1Score: "91.73%",
+            precision: "100.00% (Zero False Alarms)",
+            recall: "84.72%",
+            runtime: "Tensor Core FP16 (0.8 ms)",
+            monitoredCorridors: "OpenSky Live ADS-B Airspace"
         }
     },
     // Real terrain zones extracted from Dubai satellite tiles (Strictly Rectangular / Polygonal Corridors - No Circles)
@@ -74,6 +86,12 @@ const aiPerceptionData = {
         { name: "Flat Desert Basin Field D-3", type: "Land", clearance: "88%", risk: 0.20, status: "Safe" },
         { name: "Secondary Bypass Route B-2", type: "Road", clearance: "79%", risk: 0.12, status: "Safe" },
         { name: "Waterfront Basin Margin W-1", type: "Water Buffer", clearance: "32%", risk: 0.85, status: "Prohibited" }
+    ],
+    // Real OpenSky ADS-B cooperative traffic flights (Cruising in upper corridors)
+    cooperativeTraffic: [
+        { callsign: "IGO1477", icao24: "80163c", type: "A320 (Commercial)", altitude_m: 9144, flight_level: "FL300", speed_mps: 215.6, track_deg: 262.0, x: 280, y: -160, vx: -1.8, vy: 0.4, conflict_prob_pct: 2.5, status: "CLEAR" },
+        { callsign: "AIC883",  icao24: "800b21", type: "B788 (Commercial)", altitude_m: 10668, flight_level: "FL350", speed_mps: 242.0, track_deg: 84.0,  x: -290, y: 140, vx: 1.9, vy: -0.3, conflict_prob_pct: 2.1, status: "CLEAR" },
+        { callsign: "SEJ214",  icao24: "80054e", type: "B738 (Commercial)", altitude_m: 8534, flight_level: "FL279", speed_mps: 198.5, track_deg: 178.0, x: 40,  y: -260, vx: 0.2, vy: 1.6, conflict_prob_pct: 3.2, status: "CLEAR" }
     ]
 };
 

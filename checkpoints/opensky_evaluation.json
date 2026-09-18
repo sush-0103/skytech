@@ -1,0 +1,16 @@
+{
+  "model": "AirspaceTrafficPredictor",
+  "dataset": "OpenSky ADS-B Telemetry",
+  "epochs": 15,
+  "best_f1_pct": 91.73,
+  "precision_pct": 100.0,
+  "recall_pct": 84.72,
+  "accuracy_pct": 97.22,
+  "optimal_threshold": 0.48000000000000004,
+  "confusion_matrix": {
+    "tp": 61,
+    "fp": 0,
+    "fn": 11,
+    "tn": 323
+  }
+}

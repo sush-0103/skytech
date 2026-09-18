@@ -146,6 +146,29 @@
                                 <button class="traffic-btn" data-level="5">Very High</button>
                             </div>
                         </div>
+
+                        <!-- OpenSky ADS-B Conflict Predictor Telemetry -->
+                        <div class="param-group">
+                            <label class="param-label">OpenSky ADS-B Deconfliction Model</label>
+                            <div style="font-size: 10px; color: #cbd5e1; display: flex; flex-direction: column; gap: 5px; background: var(--bg-surface); padding: 8px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); font-family: 'JetBrains Mono', monospace;">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Model Accuracy:</span>
+                                    <span style="color: #38bdf8; font-weight: 600;">97.22% Acc | 91.73% F1</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Conflict Precision:</span>
+                                    <span style="color: #22c55e; font-weight: 600;">100.00% (0 False Alarms)</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Conflict Recall:</span>
+                                    <span style="color: #facc15; font-weight: 600;">84.72% (61/72 Caught)</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Airspace Status:</span>
+                                    <span id="opensky-status" style="color: #22c55e; font-weight: 600;">SECTOR CLEAR (187 Tracks)</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </section>
 
@@ -412,6 +435,16 @@
                                     <span class="metric-label">Neural Latency</span>
                                     <span class="metric-value" id="ai-onnx-latency" style="color: #facc15;">1.2 ms</span>
                                     <span style="font-size: 9px; color: #64748b;">sm_120 FP16</span>
+                                </div>
+                                <div class="metric-card">
+                                    <span class="metric-label">OpenSky 4D F1</span>
+                                    <span class="metric-value" id="ai-opensky-f1" style="color: #38bdf8;">91.73%</span>
+                                    <span id="ai-opensky-prec" style="font-size: 9px; color: #22c55e;">Prec: 100.0%</span>
+                                </div>
+                                <div class="metric-card">
+                                    <span class="metric-label">OpenSky Latency</span>
+                                    <span class="metric-value" id="ai-opensky-latency" style="color: #4ade80;">0.8 ms</span>
+                                    <span style="font-size: 9px; color: #64748b;">ResNet+Attn</span>
                                 </div>
                             </div>
                         </div>
