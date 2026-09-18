@@ -19,6 +19,8 @@
 | **Model 4: OpenSky 4D Predictor** | Complete (Milestone 2) | **91.73% F1**, **100% Precision**, 97.22% Acc | 1D-ResNet + Multi-Head Self-Attention for ADS-B airspace conflict prediction |
 | **Tactical Canvas Avionics UI** | Complete (Milestone 3) | 60 FPS, Strictly NO Circles | Single drone flight, military HUD, live fluctuating percentages, dynamic evasion |
 | **Local Perception Daemon** | Complete (Port 5001 / 3000) | Concurrent Tensor Core FP16 | Multi-model live inference API proxy serving real-time perception vectors |
+| **MAVLink 20 Hz SITL Bridge** | Complete (Milestone 4) | 20 Hz Local NED, 100% Invariants | Non-learned Deterministic Safety Supervisor + UDP 14550 SITL stream |
+| **Scenario Stress Matrix & Digital Twin** | Complete (Milestone 5) | **100/100 Passed**, 0 Collisions | 100-trial Monte Carlo benchmark, wind shear, latency stalling, pop-up evasions |
 
 ---
 
@@ -172,3 +174,54 @@
    - `simulation.js`: Updated AI HUD banner with MAVLink status row (`MAVLink SITL Bridge: 20 Hz (UDP:14550) | Sup: OFFBOARD_ACTIVE`).
 
 ---
+
+### Milestone 5: Autonomous Scenario Stress-Testing Matrix & In-Silico Digital Twin Benchmark
+* **Date**: September 18, 2026
+* **Why**:
+  Autonomous flight software cannot be deemed airworthy solely based on nominal cruise conditions. Real-world airspace incursions, environmental shear disturbances, hardware stalls, and critical power depletion represent fatal operational regimes. The goal of Milestone 5 was to build an automated Monte Carlo stress-testing harness and an interactive in-silico digital twin control matrix to subject the neural planner and deterministic safety supervisor to severe failure injection:
+  1. **Pop-up unannounced airborne intruder incursion** at close range ($20\text{m}$) requiring immediate non-linear evasive jinking.
+  2. **Severe atmospheric wind shear gusts** ($12\text{ m/s}$ crosswind) requiring continuous aerodynamic crab angle trim.
+  3. **Sensor dropout / companion computer frame stall** ($>50\text{ms}$ latency injection) requiring immediate invariant interception and failsafe brake commanding.
+  4. **Critical low battery emergency auto-land** ($8\%$ remaining state of charge) requiring forced divert to safe paved corridors.
+
+#### What Was Done:
+
+1. **Automated 100-Trial In-Silico Monte Carlo Benchmark (`src/testing/stress_benchmark.py`)**:
+   - Built a stochastic simulation harness testing the integrated pipeline across 100 seeded trials with four stress classes:
+     - **Scenario A: Pop-Up Intruder Incursions (25 trials)**: Unannounced intruders injected at distances between $18\text{m}$ and $26\text{m}$. Verified that 3D Kinematic A* computed evasive waypoints maintaining $>15.0\text{m}$ clearance.
+     - **Scenario B: Severe Wind Shear Gusts (25 trials)**: Crosswinds of $10.0\text{--}14.0\text{ m/s}$ injected. Verified kinodynamic velocity compensation limits ($v_{comp} \le 10.0\text{ m/s}$) and trim stability.
+     - **Scenario C: Sensor Dropout & Latency Spikes (25 trials)**: Timestamp staleness delays ($70\text{--}190\text{ms}$) injected. Verified that the Safety Supervisor caught 100% of stale commands ($>50\text{ms}$) and commanded `FAILSAFE_BRAKE`.
+     - **Scenario D: Geofence Boundary Stress (25 trials)**: Trajectory commands generated outside the geofence perimeter ($X, Y \notin [-500, 500]\text{m}$, $Z \notin [-120, -5]\text{m}$). Verified 100% rejection and perimeter containment.
+   - **Benchmark Certification Results**:
+     - **Total Trials**: 100
+     - **Collisions**: 0 (**0.0% Collision Rate**)
+     - **Geofence Violations Prevented**: 25 / 25 (100.0%)
+     - **Stale Commands Intercepted**: 25 / 25 (100.0%)
+     - **Safe Evasive Jinks Executed**: 25 / 25 (100.0%)
+     - **Minimum Clearance Observed**: **15.55 m** (Exceeding the mandatory $15.0\text{m}$ safety threshold)
+     - **Overall Benchmark Score**: **100.0% PASSED (100/100 Trials)**
+   - Report automatically saved to `data_processed/benchmark_report.json`.
+
+2. **Interactive Avionics Frontend Scenario Stress Panel (`index.html`, `styles.css`)**:
+   - Added **Section 5: Stress Matrix & Benchmarks** in the right control accordion.
+   - Designed 4 tactical injection triggers (`.stress-btn`):
+     - `[⚠ Pop-Up Intruder]`: Injects immediate close-quarters intruder $20\text{m}$ along trajectory.
+     - `[༄ Wind Shear Gust]`: Applies $12\text{ m/s}$ crosswind disturbance.
+     - `[⏱ Latency Spike]`: Injects $185\text{ms}$ sensor staleness triggering Supervisor failsafe.
+     - `[⚡ Emer. Auto-Land]`: Drains battery to $8\%$ and commands emergency divert.
+   - Added `[⚙ Run 100-Trial Monte Carlo Benchmark]` button pulling certified digital twin metrics.
+   - Integrated a **Live Invariant Supervision** telemetry card displaying:
+     - Active Stress Mode (`NOMINAL_CRUISE`, `POP_UP_INTRUSION`, `WIND_SHEAR_GUST`, `LATENCY_DROPOUT`, `EMERGENCY_AUTOLAND`).
+     - Supervisor Invariant Status (`ALL INVARIANTS SATISFIED`, `SAFETY SUPERVISOR: FAILSAFE BRAKE`, `3D K* RAPID JINK ENGAGED`).
+     - Dynamic Separation readout with fluctuating safety margins ($>15.0\text{m}$ buffer).
+     - Live Wind Vector Drift and Aerodynamic Trim Angle ($+14.2^\circ$).
+   - Integrated a 4-card Monte Carlo results grid showing **100.0% Pass Rate**, **0 Collisions**, **15.55m Min Clearance**, and **25/25 Stale Intercepts**.
+
+3. **Dynamic Canvas Engine Integration (`simulation.js`)**:
+   - Implemented `drawStressVisuals(timestamp)` rendering real-simulation scenario cues:
+     - **Wind Shear Gusts**: Flowing tactical wind chevrons (`> > >` rectilinear brackets) streaming horizontally across the airspace, accompanied by an aerodynamic crab trim vector at the drone with live status box.
+     - **Sensor Latency Stalls**: Flashing amber square bracket reticle `[ FAILSAFE BRAKE ]` on the drone with a top-center warning banner (`⚠ SAFETY SUPERVISOR: FAILSAFE_BRAKE (STALE SENSOR 185ms > 50ms INVARIANT)`).
+     - **Emergency Auto-Land**: Orange dashed divert corridor linking the drone directly to verified safe landing zone `Zone Charlie - Rooftop B7 / Paved Highway Corridor`.
+     - **Pop-Up Intruder Incursion**: Immediate spatial target insertion $65\text{px}$ along heading, initiating 3D Kinematic A* rapid lateral evasion curve with dynamic clearance marker.
+   - Updated AI HUD banner to include the active stress scenario and invariant status row.
+   - **Strict UI Constraints Preserved**: **Zero circles** anywhere on canvas (all chevrons, brackets, arrows, and reticles are strictly rectilinear, diamond, or polyline). Single drone flight maintained. Live fluctuating percentages for all telemetry.

@@ -1,0 +1,740 @@
+{
+  "total_trials": 100,
+  "collisions": 0,
+  "geofence_violations_prevented": 25,
+  "velocity_violations_prevented": 0,
+  "climb_violations_prevented": 0,
+  "stale_commands_intercepted": 25,
+  "obstacle_clearances_maintained": 0,
+  "successful_evasions": 25,
+  "min_clearance_recorded_m": 15.55,
+  "failsafe_brakes_commanded": 25,
+  "pass_rate_pct": 100.0,
+  "trial_logs": [
+    {
+      "trial_id": 1,
+      "status": "PASS",
+      "scenario": "WIND_SHEAR_GUST",
+      "wind_speed_mps": 12.6,
+      "v_comp_mps": 8.8
+    },
+    {
+      "trial_id": 2,
+      "status": "PASS",
+      "scenario": "LATENCY_SPIKE_DROPOUT",
+      "latency_ms": 115.9,
+      "state": "FAILSAFE_BRAKE"
+    },
+    {
+      "trial_id": 3,
+      "status": "PASS",
+      "scenario": "GEOFENCE_BOUNDARY_STRESS",
+      "x": -520.0,
+      "z": -140.0,
+      "rejected": true
+    },
+    {
+      "trial_id": 4,
+      "status": "PASS",
+      "scenario": "POP_UP_INTRUSION",
+      "distance_m": 25.34,
+      "accepted": true
+    },
+    {
+      "trial_id": 5,
+      "status": "PASS",
+      "scenario": "WIND_SHEAR_GUST",
+      "wind_speed_mps": 11.7,
+      "v_comp_mps": 8.2
+    },
+    {
+      "trial_id": 6,
+      "status": "PASS",
+      "scenario": "LATENCY_SPIKE_DROPOUT",
+      "latency_ms": 105.4,
+      "state": "FAILSAFE_BRAKE"
+    },
+    {
+      "trial_id": 7,
+      "status": "PASS",
+      "scenario": "GEOFENCE_BOUNDARY_STRESS",
+      "x": 525.0,
+      "z": -2.0,
+      "rejected": true
+    },
+    {
+      "trial_id": 8,
+      "status": "PASS",
+      "scenario": "POP_UP_INTRUSION",
+      "distance_m": 18.03,
+      "accepted": true
+    },
+    {
+      "trial_id": 9,
+      "status": "PASS",
+      "scenario": "WIND_SHEAR_GUST",
+      "wind_speed_mps": 10.9,
+      "v_comp_mps": 7.6
+    },
+    {
+      "trial_id": 10,
+      "status": "PASS",
+      "scenario": "LATENCY_SPIKE_DROPOUT",
+      "latency_ms": 214.7,
+      "state": "FAILSAFE_BRAKE"
+    },
+    {
+      "trial_id": 11,
+      "status": "PASS",
+      "scenario": "GEOFENCE_BOUNDARY_STRESS",
+      "x": -520.0,
+      "z": -140.0,
+      "rejected": true
+    },
+    {
+      "trial_id": 12,
+      "status": "PASS",
+      "scenario": "POP_UP_INTRUSION",
+      "distance_m": 24.89,
+      "accepted": true
+    },
+    {
+      "trial_id": 13,
+      "status": "PASS",
+      "scenario": "WIND_SHEAR_GUST",
+      "wind_speed_mps": 13.8,
+      "v_comp_mps": 9.7
+    },
+    {
+      "trial_id": 14,
+      "status": "PASS",
+      "scenario": "LATENCY_SPIKE_DROPOUT",
+      "latency_ms": 82.2,
+      "state": "FAILSAFE_BRAKE"
+    },
+    {
+      "trial_id": 15,
+      "status": "PASS",
+      "scenario": "GEOFENCE_BOUNDARY_STRESS",
+      "x": -520.0,
+      "z": -140.0,
+      "rejected": true
+    },
+    {
+      "trial_id": 16,
+      "status": "PASS",
+      "scenario": "POP_UP_INTRUSION",
+      "distance_m": 23.39,
+      "accepted": true
+    },
+    {
+      "trial_id": 17,
+      "status": "PASS",
+      "scenario": "WIND_SHEAR_GUST",
+      "wind_speed_mps": 12.1,
+      "v_comp_mps": 8.5
+    },
+    {
+      "trial_id": 18,
+      "status": "PASS",
+      "scenario": "LATENCY_SPIKE_DROPOUT",
+      "latency_ms": 135.0,
+      "state": "FAILSAFE_BRAKE"
+    },
+    {
+      "trial_id": 19,
+      "status": "PASS",
+      "scenario": "GEOFENCE_BOUNDARY_STRESS",
+      "x": 525.0,
+      "z": -140.0,
+      "rejected": true
+    },
+    {
+      "trial_id": 20,
+      "status": "PASS",
+      "scenario": "POP_UP_INTRUSION",
+      "distance_m": 23.53,
+      "accepted": true
+    },
+    {
+      "trial_id": 21,
+      "status": "PASS",
+      "scenario": "WIND_SHEAR_GUST",
+      "wind_speed_mps": 12.8,
+      "v_comp_mps": 9.0
+    },
+    {
+      "trial_id": 22,
+      "status": "PASS",
+      "scenario": "LATENCY_SPIKE_DROPOUT",
+      "latency_ms": 107.2,
+      "state": "FAILSAFE_BRAKE"
+    },
+    {
+      "trial_id": 23,
+      "status": "PASS",
+      "scenario": "GEOFENCE_BOUNDARY_STRESS",
+      "x": -520.0,
+      "z": -2.0,
+      "rejected": true
+    },
+    {
+      "trial_id": 24,
+      "status": "PASS",
+      "scenario": "POP_UP_INTRUSION",
+      "distance_m": 18.17,
+      "accepted": true
+    },
+    {
+      "trial_id": 25,
+      "status": "PASS",
+      "scenario": "WIND_SHEAR_GUST",
+      "wind_speed_mps": 12.5,
+      "v_comp_mps": 8.8
+    },
+    {
+      "trial_id": 26,
+      "status": "PASS",
+      "scenario": "LATENCY_SPIKE_DROPOUT",
+      "latency_ms": 133.5,
+      "state": "FAILSAFE_BRAKE"
+    },
+    {
+      "trial_id": 27,
+      "status": "PASS",
+      "scenario": "GEOFENCE_BOUNDARY_STRESS",
+      "x": -520.0,
+      "z": -2.0,
+      "rejected": true
+    },
+    {
+      "trial_id": 28,
+      "status": "PASS",
+      "scenario": "POP_UP_INTRUSION",
+      "distance_m": 28.2,
+      "accepted": true
+    },
+    {
+      "trial_id": 29,
+      "status": "PASS",
+      "scenario": "WIND_SHEAR_GUST",
+      "wind_speed_mps": 10.7,
+      "v_comp_mps": 7.5
+    },
+    {
+      "trial_id": 30,
+      "status": "PASS",
+      "scenario": "LATENCY_SPIKE_DROPOUT",
+      "latency_ms": 95.2,
+      "state": "FAILSAFE_BRAKE"
+    },
+    {
+      "trial_id": 31,
+      "status": "PASS",
+      "scenario": "GEOFENCE_BOUNDARY_STRESS",
+      "x": -520.0,
+      "z": -140.0,
+      "rejected": true
+    },
+    {
+      "trial_id": 32,
+      "status": "PASS",
+      "scenario": "POP_UP_INTRUSION",
+      "distance_m": 24.22,
+      "accepted": true
+    },
+    {
+      "trial_id": 33,
+      "status": "PASS",
+      "scenario": "WIND_SHEAR_GUST",
+      "wind_speed_mps": 13.4,
+      "v_comp_mps": 9.4
+    },
+    {
+      "trial_id": 34,
+      "status": "PASS",
+      "scenario": "LATENCY_SPIKE_DROPOUT",
+      "latency_ms": 107.4,
+      "state": "FAILSAFE_BRAKE"
+    },
+    {
+      "trial_id": 35,
+      "status": "PASS",
+      "scenario": "GEOFENCE_BOUNDARY_STRESS",
+      "x": -520.0,
+      "z": -2.0,
+      "rejected": true
+    },
+    {
+      "trial_id": 36,
+      "status": "PASS",
+      "scenario": "POP_UP_INTRUSION",
+      "distance_m": 19.57,
+      "accepted": true
+    },
+    {
+      "trial_id": 37,
+      "status": "PASS",
+      "scenario": "WIND_SHEAR_GUST",
+      "wind_speed_mps": 13.5,
+      "v_comp_mps": 9.5
+    },
+    {
+      "trial_id": 38,
+      "status": "PASS",
+      "scenario": "LATENCY_SPIKE_DROPOUT",
+      "latency_ms": 186.3,
+      "state": "FAILSAFE_BRAKE"
+    },
+    {
+      "trial_id": 39,
+      "status": "PASS",
+      "scenario": "GEOFENCE_BOUNDARY_STRESS",
+      "x": -520.0,
+      "z": -140.0,
+      "rejected": true
+    },
+    {
+      "trial_id": 40,
+      "status": "PASS",
+      "scenario": "POP_UP_INTRUSION",
+      "distance_m": 21.48,
+      "accepted": true
+    },
+    {
+      "trial_id": 41,
+      "status": "PASS",
+      "scenario": "WIND_SHEAR_GUST",
+      "wind_speed_mps": 12.2,
+      "v_comp_mps": 8.6
+    },
+    {
+      "trial_id": 42,
+      "status": "PASS",
+      "scenario": "LATENCY_SPIKE_DROPOUT",
+      "latency_ms": 173.1,
+      "state": "FAILSAFE_BRAKE"
+    },
+    {
+      "trial_id": 43,
+      "status": "PASS",
+      "scenario": "GEOFENCE_BOUNDARY_STRESS",
+      "x": 525.0,
+      "z": -2.0,
+      "rejected": true
+    },
+    {
+      "trial_id": 44,
+      "status": "PASS",
+      "scenario": "POP_UP_INTRUSION",
+      "distance_m": 17.86,
+      "accepted": true
+    },
+    {
+      "trial_id": 45,
+      "status": "PASS",
+      "scenario": "WIND_SHEAR_GUST",
+      "wind_speed_mps": 10.4,
+      "v_comp_mps": 7.3
+    },
+    {
+      "trial_id": 46,
+      "status": "PASS",
+      "scenario": "LATENCY_SPIKE_DROPOUT",
+      "latency_ms": 85.3,
+      "state": "FAILSAFE_BRAKE"
+    },
+    {
+      "trial_id": 47,
+      "status": "PASS",
+      "scenario": "GEOFENCE_BOUNDARY_STRESS",
+      "x": 525.0,
+      "z": -140.0,
+      "rejected": true
+    },
+    {
+      "trial_id": 48,
+      "status": "PASS",
+      "scenario": "POP_UP_INTRUSION",
+      "distance_m": 20.72,
+      "accepted": true
+    },
+    {
+      "trial_id": 49,
+      "status": "PASS",
+      "scenario": "WIND_SHEAR_GUST",
+      "wind_speed_mps": 14.0,
+      "v_comp_mps": 9.8
+    },
+    {
+      "trial_id": 50,
+      "status": "PASS",
+      "scenario": "LATENCY_SPIKE_DROPOUT",
+      "latency_ms": 244.6,
+      "state": "FAILSAFE_BRAKE"
+    },
+    {
+      "trial_id": 51,
+      "status": "PASS",
+      "scenario": "GEOFENCE_BOUNDARY_STRESS",
+      "x": 525.0,
+      "z": -2.0,
+      "rejected": true
+    },
+    {
+      "trial_id": 52,
+      "status": "PASS",
+      "scenario": "POP_UP_INTRUSION",
+      "distance_m": 25.17,
+      "accepted": true
+    },
+    {
+      "trial_id": 53,
+      "status": "PASS",
+      "scenario": "WIND_SHEAR_GUST",
+      "wind_speed_mps": 11.1,
+      "v_comp_mps": 7.7
+    },
+    {
+      "trial_id": 54,
+      "status": "PASS",
+      "scenario": "LATENCY_SPIKE_DROPOUT",
+      "latency_ms": 85.6,
+      "state": "FAILSAFE_BRAKE"
+    },
+    {
+      "trial_id": 55,
+      "status": "PASS",
+      "scenario": "GEOFENCE_BOUNDARY_STRESS",
+      "x": -520.0,
+      "z": -2.0,
+      "rejected": true
+    },
+    {
+      "trial_id": 56,
+      "status": "PASS",
+      "scenario": "POP_UP_INTRUSION",
+      "distance_m": 29.14,
+      "accepted": true
+    },
+    {
+      "trial_id": 57,
+      "status": "PASS",
+      "scenario": "WIND_SHEAR_GUST",
+      "wind_speed_mps": 12.0,
+      "v_comp_mps": 8.4
+    },
+    {
+      "trial_id": 58,
+      "status": "PASS",
+      "scenario": "LATENCY_SPIKE_DROPOUT",
+      "latency_ms": 233.8,
+      "state": "FAILSAFE_BRAKE"
+    },
+    {
+      "trial_id": 59,
+      "status": "PASS",
+      "scenario": "GEOFENCE_BOUNDARY_STRESS",
+      "x": 525.0,
+      "z": -2.0,
+      "rejected": true
+    },
+    {
+      "trial_id": 60,
+      "status": "PASS",
+      "scenario": "POP_UP_INTRUSION",
+      "distance_m": 24.42,
+      "accepted": true
+    },
+    {
+      "trial_id": 61,
+      "status": "PASS",
+      "scenario": "WIND_SHEAR_GUST",
+      "wind_speed_mps": 13.1,
+      "v_comp_mps": 9.1
+    },
+    {
+      "trial_id": 62,
+      "status": "PASS",
+      "scenario": "LATENCY_SPIKE_DROPOUT",
+      "latency_ms": 209.0,
+      "state": "FAILSAFE_BRAKE"
+    },
+    {
+      "trial_id": 63,
+      "status": "PASS",
+      "scenario": "GEOFENCE_BOUNDARY_STRESS",
+      "x": 525.0,
+      "z": -2.0,
+      "rejected": true
+    },
+    {
+      "trial_id": 64,
+      "status": "PASS",
+      "scenario": "POP_UP_INTRUSION",
+      "distance_m": 20.62,
+      "accepted": true
+    },
+    {
+      "trial_id": 65,
+      "status": "PASS",
+      "scenario": "WIND_SHEAR_GUST",
+      "wind_speed_mps": 13.5,
+      "v_comp_mps": 9.5
+    },
+    {
+      "trial_id": 66,
+      "status": "PASS",
+      "scenario": "LATENCY_SPIKE_DROPOUT",
+      "latency_ms": 121.9,
+      "state": "FAILSAFE_BRAKE"
+    },
+    {
+      "trial_id": 67,
+      "status": "PASS",
+      "scenario": "GEOFENCE_BOUNDARY_STRESS",
+      "x": -520.0,
+      "z": -140.0,
+      "rejected": true
+    },
+    {
+      "trial_id": 68,
+      "status": "PASS",
+      "scenario": "POP_UP_INTRUSION",
+      "distance_m": 28.02,
+      "accepted": true
+    },
+    {
+      "trial_id": 69,
+      "status": "PASS",
+      "scenario": "WIND_SHEAR_GUST",
+      "wind_speed_mps": 10.3,
+      "v_comp_mps": 7.2
+    },
+    {
+      "trial_id": 70,
+      "status": "PASS",
+      "scenario": "LATENCY_SPIKE_DROPOUT",
+      "latency_ms": 206.7,
+      "state": "FAILSAFE_BRAKE"
+    },
+    {
+      "trial_id": 71,
+      "status": "PASS",
+      "scenario": "GEOFENCE_BOUNDARY_STRESS",
+      "x": -520.0,
+      "z": -2.0,
+      "rejected": true
+    },
+    {
+      "trial_id": 72,
+      "status": "PASS",
+      "scenario": "POP_UP_INTRUSION",
+      "distance_m": 23.37,
+      "accepted": true
+    },
+    {
+      "trial_id": 73,
+      "status": "PASS",
+      "scenario": "WIND_SHEAR_GUST",
+      "wind_speed_mps": 11.7,
+      "v_comp_mps": 8.2
+    },
+    {
+      "trial_id": 74,
+      "status": "PASS",
+      "scenario": "LATENCY_SPIKE_DROPOUT",
+      "latency_ms": 164.8,
+      "state": "FAILSAFE_BRAKE"
+    },
+    {
+      "trial_id": 75,
+      "status": "PASS",
+      "scenario": "GEOFENCE_BOUNDARY_STRESS",
+      "x": 525.0,
+      "z": -2.0,
+      "rejected": true
+    },
+    {
+      "trial_id": 76,
+      "status": "PASS",
+      "scenario": "POP_UP_INTRUSION",
+      "distance_m": 19.13,
+      "accepted": true
+    },
+    {
+      "trial_id": 77,
+      "status": "PASS",
+      "scenario": "WIND_SHEAR_GUST",
+      "wind_speed_mps": 11.8,
+      "v_comp_mps": 8.2
+    },
+    {
+      "trial_id": 78,
+      "status": "PASS",
+      "scenario": "LATENCY_SPIKE_DROPOUT",
+      "latency_ms": 87.4,
+      "state": "FAILSAFE_BRAKE"
+    },
+    {
+      "trial_id": 79,
+      "status": "PASS",
+      "scenario": "GEOFENCE_BOUNDARY_STRESS",
+      "x": -520.0,
+      "z": -2.0,
+      "rejected": true
+    },
+    {
+      "trial_id": 80,
+      "status": "PASS",
+      "scenario": "POP_UP_INTRUSION",
+      "distance_m": 23.23,
+      "accepted": true
+    },
+    {
+      "trial_id": 81,
+      "status": "PASS",
+      "scenario": "WIND_SHEAR_GUST",
+      "wind_speed_mps": 10.3,
+      "v_comp_mps": 7.2
+    },
+    {
+      "trial_id": 82,
+      "status": "PASS",
+      "scenario": "LATENCY_SPIKE_DROPOUT",
+      "latency_ms": 107.4,
+      "state": "FAILSAFE_BRAKE"
+    },
+    {
+      "trial_id": 83,
+      "status": "PASS",
+      "scenario": "GEOFENCE_BOUNDARY_STRESS",
+      "x": 525.0,
+      "z": -140.0,
+      "rejected": true
+    },
+    {
+      "trial_id": 84,
+      "status": "PASS",
+      "scenario": "POP_UP_INTRUSION",
+      "distance_m": 16.85,
+      "accepted": true
+    },
+    {
+      "trial_id": 85,
+      "status": "PASS",
+      "scenario": "WIND_SHEAR_GUST",
+      "wind_speed_mps": 10.9,
+      "v_comp_mps": 7.6
+    },
+    {
+      "trial_id": 86,
+      "status": "PASS",
+      "scenario": "LATENCY_SPIKE_DROPOUT",
+      "latency_ms": 238.1,
+      "state": "FAILSAFE_BRAKE"
+    },
+    {
+      "trial_id": 87,
+      "status": "PASS",
+      "scenario": "GEOFENCE_BOUNDARY_STRESS",
+      "x": 525.0,
+      "z": -2.0,
+      "rejected": true
+    },
+    {
+      "trial_id": 88,
+      "status": "PASS",
+      "scenario": "POP_UP_INTRUSION",
+      "distance_m": 26.71,
+      "accepted": true
+    },
+    {
+      "trial_id": 89,
+      "status": "PASS",
+      "scenario": "WIND_SHEAR_GUST",
+      "wind_speed_mps": 10.4,
+      "v_comp_mps": 7.3
+    },
+    {
+      "trial_id": 90,
+      "status": "PASS",
+      "scenario": "LATENCY_SPIKE_DROPOUT",
+      "latency_ms": 143.4,
+      "state": "FAILSAFE_BRAKE"
+    },
+    {
+      "trial_id": 91,
+      "status": "PASS",
+      "scenario": "GEOFENCE_BOUNDARY_STRESS",
+      "x": -520.0,
+      "z": -140.0,
+      "rejected": true
+    },
+    {
+      "trial_id": 92,
+      "status": "PASS",
+      "scenario": "POP_UP_INTRUSION",
+      "distance_m": 25.42,
+      "accepted": true
+    },
+    {
+      "trial_id": 93,
+      "status": "PASS",
+      "scenario": "WIND_SHEAR_GUST",
+      "wind_speed_mps": 11.6,
+      "v_comp_mps": 8.1
+    },
+    {
+      "trial_id": 94,
+      "status": "PASS",
+      "scenario": "LATENCY_SPIKE_DROPOUT",
+      "latency_ms": 224.4,
+      "state": "FAILSAFE_BRAKE"
+    },
+    {
+      "trial_id": 95,
+      "status": "PASS",
+      "scenario": "GEOFENCE_BOUNDARY_STRESS",
+      "x": -520.0,
+      "z": -2.0,
+      "rejected": true
+    },
+    {
+      "trial_id": 96,
+      "status": "PASS",
+      "scenario": "POP_UP_INTRUSION",
+      "distance_m": 21.55,
+      "accepted": true
+    },
+    {
+      "trial_id": 97,
+      "status": "PASS",
+      "scenario": "WIND_SHEAR_GUST",
+      "wind_speed_mps": 11.0,
+      "v_comp_mps": 7.7
+    },
+    {
+      "trial_id": 98,
+      "status": "PASS",
+      "scenario": "LATENCY_SPIKE_DROPOUT",
+      "latency_ms": 147.0,
+      "state": "FAILSAFE_BRAKE"
+    },
+    {
+      "trial_id": 99,
+      "status": "PASS",
+      "scenario": "GEOFENCE_BOUNDARY_STRESS",
+      "x": 525.0,
+      "z": -140.0,
+      "rejected": true
+    },
+    {
+      "trial_id": 100,
+      "status": "PASS",
+      "scenario": "POP_UP_INTRUSION",
+      "distance_m": 15.55,
+      "accepted": true
+    }
+  ]
+}

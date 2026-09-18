@@ -1482,3 +1482,63 @@ body {
         display: none;
     }
 }
+
+/* ===================================
+   MILESTONE 5: SCENARIO STRESS MATRIX
+   =================================== */
+.stress-btn {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    padding: 8px 10px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+    text-align: left;
+    transition: all var(--transition-fast);
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.stress-btn:hover {
+    background: var(--bg-hover);
+    border-color: #38bdf8;
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+}
+
+.stress-btn:active {
+    transform: scale(0.98);
+}
+
+.stress-btn.active {
+    border-color: #ef4444;
+    background: rgba(239, 68, 68, 0.12);
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.3);
+}
+
+.stress-btn-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.stress-btn-desc {
+    font-size: 9px;
+    color: var(--text-muted);
+}
+
+.benchmark-btn {
+    padding: 10px;
+    background: rgba(56, 189, 248, 0.08);
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    align-items: center;
+    text-align: center;
+    cursor: pointer;
+}
+
+.benchmark-btn:hover {
+    background: rgba(56, 189, 248, 0.18);
+    border-color: #38bdf8;
+    box-shadow: 0 0 14px rgba(56, 189, 248, 0.35);
+}

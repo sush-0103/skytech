@@ -511,6 +511,99 @@
                         </div>
                     </div>
                 </section>
+
+                <!-- Section 5: Autonomous Scenario Stress-Testing Matrix (Milestone 5) -->
+                <section class="param-section" id="section-stress-matrix">
+                    <div class="section-header" data-toggle="stress-body">
+                        <div class="section-icon" style="background: rgba(239, 68, 68, 0.15); color: #ef4444;">
+                            <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor">
+                                <path d="M10 2L3 11h5l-1 5 7-9h-5l1-5z" stroke="currentColor" stroke-width="1.2" fill="none"/>
+                            </svg>
+                        </div>
+                        <h3 class="section-title">Stress Matrix & Benchmarks</h3>
+                        <span class="section-chevron">
+                            <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><path d="M3 4l3 4 3-4"/></svg>
+                        </span>
+                    </div>
+                    <div class="section-body open" id="stress-body">
+                        <!-- Stress Injection Controls -->
+                        <div class="param-group">
+                            <label class="param-label">Scenario Stress Injection</label>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+                                <button class="stress-btn" id="btn-stress-popup" title="Spawn pop-up intruder 20m ahead">
+                                    <span class="stress-btn-title">⚠ Pop-Up Intruder</span>
+                                    <span class="stress-btn-desc">20m Rapid Jink</span>
+                                </button>
+                                <button class="stress-btn" id="btn-stress-wind" title="Apply 12 m/s crosswind gust">
+                                    <span class="stress-btn-title">༄ Wind Shear Gust</span>
+                                    <span class="stress-btn-desc">12 m/s Crosswind</span>
+                                </button>
+                                <button class="stress-btn" id="btn-stress-latency" title="Simulate 180ms sensor latency spike">
+                                    <span class="stress-btn-title">⏱ Latency Spike</span>
+                                    <span class="stress-btn-desc">>50ms Brake Intercept</span>
+                                </button>
+                                <button class="stress-btn" id="btn-stress-autoland" title="Trigger critical battery emergency auto-land">
+                                    <span class="stress-btn-title">⚡ Emer. Auto-Land</span>
+                                    <span class="stress-btn-desc">Paved Corridor Divert</span>
+                                </button>
+                            </div>
+                            <button class="stress-btn benchmark-btn" id="btn-run-benchmark" style="width: 100%; border-color: #38bdf8;">
+                                <span class="stress-btn-title" style="color: #38bdf8;">⚙ Run 100-Trial Monte Carlo Benchmark</span>
+                                <span class="stress-btn-desc">In-Silico Digital Twin Safety Certification</span>
+                            </button>
+                        </div>
+
+                        <!-- Live Scenario Telemetry Status -->
+                        <div class="param-group">
+                            <label class="param-label">Live Invariant Supervision</label>
+                            <div style="font-size: 10px; color: #cbd5e1; display: flex; flex-direction: column; gap: 5px; background: var(--bg-surface); padding: 8px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); font-family: 'JetBrains Mono', monospace;">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Stress Mode:</span>
+                                    <span id="stress-mode-label" style="color: #22c55e; font-weight: 600;">NOMINAL_CRUISE</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Supervisor Invariant:</span>
+                                    <span id="stress-invariant-status" style="color: #38bdf8; font-weight: 600;">ALL INVARIANTS SATISFIED</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Dynamic Separation:</span>
+                                    <span id="stress-dynamic-sep" style="color: #facc15; font-weight: 600;">78.4 m (> 15.0m buffer)</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Wind Vector Drift:</span>
+                                    <span id="stress-wind-vector" style="color: #94a3b8; font-weight: 600;">0.0 m/s (Trim 0°)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Monte Carlo 100-Trial Digital Twin Audit Card -->
+                        <div class="param-group">
+                            <label class="param-label">100-Trial Benchmark Results</label>
+                            <div class="metrics-grid">
+                                <div class="metric-card">
+                                    <span class="metric-label">Pass Rate</span>
+                                    <span class="metric-value" id="bench-pass-rate" style="color: #22c55e;">100.0%</span>
+                                    <span style="font-size: 9px; color: #64748b;">100/100 Trials</span>
+                                </div>
+                                <div class="metric-card">
+                                    <span class="metric-label">Collisions</span>
+                                    <span class="metric-value" id="bench-collisions" style="color: #22c55e;">0</span>
+                                    <span style="font-size: 9px; color: #64748b;">0.0% Failure</span>
+                                </div>
+                                <div class="metric-card">
+                                    <span class="metric-label">Min Clearance</span>
+                                    <span class="metric-value" id="bench-clearance" style="color: #facc15;">15.55 m</span>
+                                    <span style="font-size: 9px; color: #64748b;">Buffer 15.0m</span>
+                                </div>
+                                <div class="metric-card">
+                                    <span class="metric-label">Stale Intercept</span>
+                                    <span class="metric-value" id="bench-stale" style="color: #38bdf8;">25/25</span>
+                                    <span style="font-size: 9px; color: #64748b;">Failsafe Brake</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
             </div>
         </aside>
     </div>
