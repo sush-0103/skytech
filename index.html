@@ -35,7 +35,6 @@
         </div>
         <div class="top-bar-right">
             <div class="status-indicator">
-                <span class="status-dot pulse"></span>
                 <span class="status-text">System Ready</span>
             </div>
             <div class="sim-time">
@@ -173,7 +172,7 @@
                             </div>
                         </div>
                         <!-- CPU Usage with Real Host Metrics -->
-                        <div class="param-group">
+                        <div class="param-group cpu-param-group">
                             <label class="param-label">
                                 <span>Host System CPU <span class="host-live-badge">LIVE</span></span>
                                 <span class="param-value-display" id="cpu-display">Host CPU</span>
@@ -185,7 +184,7 @@
                             <div class="cpu-cores-grid" id="cpu-cores-grid">
                                 <!-- Populated dynamically from localhost system telemetry -->
                             </div>
-                            <div class="slider-container" style="margin-top: 14px;">
+                            <div class="slider-container cpu-cap-container">
                                 <label class="param-sublabel">Drone Processing Core Cap</label>
                                 <input type="range" class="custom-slider memory-slider" id="cpu-cores" min="1" max="8" step="1" value="4">
                                 <div class="slider-marks">
@@ -275,26 +274,23 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- Flight Range Estimation (Clean Indicators - No SVG) -->
+                        <!-- Flight Range Estimation (Clean Indicators - No Dots) -->
                         <div class="param-group">
                             <label class="param-label">Flight Range Estimation</label>
                             <div class="range-estimation">
                                 <div class="range-stat">
-                                    <div class="range-dot safe"></div>
                                     <div class="range-info">
                                         <span class="range-val" id="range-max">12.4 km</span>
                                         <span class="range-desc">Max Range</span>
                                     </div>
                                 </div>
                                 <div class="range-stat">
-                                    <div class="range-dot warning"></div>
                                     <div class="range-info">
                                         <span class="range-val" id="range-safe">9.6 km</span>
                                         <span class="range-desc">Safe Return</span>
                                     </div>
                                 </div>
                                 <div class="range-stat">
-                                    <div class="range-dot danger"></div>
                                     <div class="range-info">
                                         <span class="range-val" id="range-critical">2.1 km</span>
                                         <span class="range-desc">Critical Reserve</span>
@@ -307,7 +303,6 @@
                             <label class="param-label">Safe Landing Zones</label>
                             <div class="landing-zones" id="landing-zones">
                                 <div class="landing-zone reachable">
-                                    <div class="zone-indicator"></div>
                                     <div class="zone-info">
                                         <span class="zone-name">Zone Alpha - Helipad A3</span>
                                         <span class="zone-dist">1.2 km NE</span>
@@ -315,7 +310,6 @@
                                     <span class="zone-status">Reachable</span>
                                 </div>
                                 <div class="landing-zone reachable">
-                                    <div class="zone-indicator"></div>
                                     <div class="zone-info">
                                         <span class="zone-name">Zone Bravo - Open Field</span>
                                         <span class="zone-dist">3.4 km SW</span>
@@ -323,7 +317,6 @@
                                     <span class="zone-status">Reachable</span>
                                 </div>
                                 <div class="landing-zone reachable">
-                                    <div class="zone-indicator"></div>
                                     <div class="zone-info">
                                         <span class="zone-name">Zone Charlie - Rooftop B7</span>
                                         <span class="zone-dist">5.1 km E</span>
@@ -331,7 +324,6 @@
                                     <span class="zone-status">Reachable</span>
                                 </div>
                                 <div class="landing-zone warning">
-                                    <div class="zone-indicator"></div>
                                     <div class="zone-info">
                                         <span class="zone-name">Zone Delta - Parking Lot</span>
                                         <span class="zone-dist">8.9 km N</span>
@@ -339,7 +331,6 @@
                                     <span class="zone-status">Marginal</span>
                                 </div>
                                 <div class="landing-zone unreachable">
-                                    <div class="zone-indicator"></div>
                                     <div class="zone-info">
                                         <span class="zone-name">Zone Echo - Base Station</span>
                                         <span class="zone-dist">14.2 km W</span>
@@ -383,8 +374,7 @@
     <footer id="status-bar">
         <div class="status-left">
             <span class="status-item">
-                <span class="status-icon ready"></span>
-                Simulation Idle
+                <span id="sim-status-text">Simulation Idle</span>
             </span>
             <span class="status-item">Drones: 4 Active</span>
             <span class="status-item">Collisions: 0</span>

@@ -517,16 +517,19 @@ function initSparklines() {
 // ─── Event Handlers ─────────────────────
 
 // Simulation Controls
+function setSimStatus(text) {
+    const textEl = document.getElementById('sim-status-text');
+    if (textEl) textEl.textContent = text;
+}
+
 document.getElementById('btn-play').addEventListener('click', () => {
     state.simulation.running = true;
-    document.querySelector('.status-icon').className = 'status-icon running';
-    document.querySelector('.status-item').childNodes[1].textContent = ' Simulation Running';
+    setSimStatus('Simulation Running');
 });
 
 document.getElementById('btn-pause').addEventListener('click', () => {
     state.simulation.running = false;
-    document.querySelector('.status-icon').className = 'status-icon ready';
-    document.querySelector('.status-item').childNodes[1].textContent = ' Simulation Paused';
+    setSimStatus('Simulation Paused');
 });
 
 document.getElementById('btn-stop').addEventListener('click', () => {
@@ -534,8 +537,7 @@ document.getElementById('btn-stop').addEventListener('click', () => {
     state.simulation.time = 0;
     state.drones.forEach(d => { d.trail = []; });
     initDrones();
-    document.querySelector('.status-icon').className = 'status-icon ready';
-    document.querySelector('.status-item').childNodes[1].textContent = ' Simulation Idle';
+    setSimStatus('Simulation Idle');
 });
 
 document.getElementById('sim-speed').addEventListener('change', (e) => {
