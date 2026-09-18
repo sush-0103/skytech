@@ -588,9 +588,9 @@ document.getElementById('panel-collapse').addEventListener('click', () => {
     panel.classList.toggle('collapsed');
     const btn = document.getElementById('panel-collapse');
     if (panel.classList.contains('collapsed')) {
-        btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><path d="M5 3l5 4-5 4V3z"/></svg>';
+        btn.textContent = '▶';
     } else {
-        btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><path d="M9 3l-5 4 5 4V3z"/></svg>';
+        btn.textContent = '◀';
     }
     // Resize canvas after panel animation
     setTimeout(resizeCanvas, 450);
@@ -609,10 +609,6 @@ document.querySelectorAll('.traffic-btn').forEach(btn => {
         btn.classList.add('active');
         state.traffic.level = parseInt(btn.dataset.level);
 
-        // Update density fill
-        const fillPercent = (state.traffic.level / 5) * 100;
-        document.getElementById('density-fill').style.width = fillPercent + '%';
-
         // Update traffic count in state
         const baseCount = state.traffic.level * 8 + Math.floor(Math.random() * 5);
         state.traffic.aircraftCount = baseCount;
@@ -627,26 +623,10 @@ document.getElementById('memory-alloc').addEventListener('input', (e) => {
     document.getElementById('memory-display').textContent = display;
 });
 
-// CPU Cores Slider
+// CPU Drone Processing Cap Slider
 document.getElementById('cpu-cores').addEventListener('input', (e) => {
     const cores = parseInt(e.target.value);
     state.memory.cpuCores = cores;
-    document.getElementById('cpu-display').textContent = `${cores} Core${cores > 1 ? 's' : ''}`;
-
-    // Update core visuals
-    for (let i = 1; i <= 8; i++) {
-        const coreEl = document.getElementById(`core-${i}`);
-        if (i <= cores) {
-            coreEl.classList.add('active');
-            const usage = Math.floor(Math.random() * 40 + 30);
-            coreEl.querySelector('.core-fill').style.height = usage + '%';
-            coreEl.querySelector('.core-pct').textContent = usage + '%';
-        } else {
-            coreEl.classList.remove('active');
-            coreEl.querySelector('.core-fill').style.height = '0%';
-            coreEl.querySelector('.core-pct').textContent = '—';
-        }
-    }
 });
 
 // Battery Level Slider
@@ -685,9 +665,13 @@ document.getElementById('battery-level').addEventListener('input', (e) => {
     // Update consumption
     const consumption = Math.floor(150 + (100 - level) * 2 + Math.random() * 20);
     state.power.consumption = consumption;
-    document.getElementById('consumption-text').textContent = consumption + 'W';
-    const arcOffset = 141.37 * (1 - consumption / 500);
-    document.getElementById('consumption-arc').setAttribute('stroke-dashoffset', arcOffset);
+    const consText = document.getElementById('consumption-text');
+    if (consText) consText.textContent = consumption + 'W';
+    const consBar = document.getElementById('consumption-bar');
+    if (consBar) {
+        const pct = Math.min(100, Math.max(10, Math.round((consumption / 500) * 100)));
+        consBar.style.width = pct + '%';
+    }
 
     // Update landing zones reachability
     updateLandingZones(maxRange);
@@ -786,8 +770,96 @@ function updateMetrics() {
     const gpuBase = 20 + state.traffic.level * 5;
     const gpuVar = Math.floor(Math.random() * 8);
     document.getElementById('gpu-usage').textContent = (gpuBase + gpuVar) + '%';
+}
 
+// ─── Real Host System Metrics ───────────
+function updateCpuCoresGrid(perCore) {
+    const grid = document.getElementById('cpu-cores-grid');
+    if (!grid) return;
 
+    // Initialize or rebuild if core count changed
+    if (grid.children.length !== perCore.length) {
+        grid.innerHTML = '';
+        perCore.forEach(c => {
+            const coreEl = document.createElement('div');
+            coreEl.className = 'cpu-core active';
+            coreEl.id = `host-core-${c.core}`;
+            coreEl.innerHTML = `
+                <div class="core-bar"><div class="core-fill" style="height:${c.usage}%"></div></div>
+                <span class="core-label">C${c.core}</span>
+                <span class="core-pct">${c.usage}%</span>
+            `;
+            grid.appendChild(coreEl);
+        });
+        return;
+    }
+
+    // Update live metrics for each core
+    perCore.forEach(c => {
+        const coreEl = document.getElementById(`host-core-${c.core}`);
+        if (!coreEl) return;
+        const fill = coreEl.querySelector('.core-fill');
+        const pct = coreEl.querySelector('.core-pct');
+        if (fill) fill.style.height = `${c.usage}%`;
+        if (pct) pct.textContent = `${c.usage}%`;
+        if (c.usage > 75) {
+            coreEl.classList.add('high-load');
+        } else {
+            coreEl.classList.remove('high-load');
+        }
+    });
+}
+
+function renderFallbackCores() {
+    const grid = document.getElementById('cpu-cores-grid');
+    if (!grid || grid.children.length > 0) return;
+    const mockCores = [
+        { core: 1, usage: 42 }, { core: 2, usage: 55 }, { core: 3, usage: 38 }, { core: 4, usage: 61 },
+        { core: 5, usage: 22 }, { core: 6, usage: 18 }, { core: 7, usage: 30 }, { core: 8, usage: 12 }
+    ];
+    updateCpuCoresGrid(mockCores);
+}
+
+async function fetchHostMetrics() {
+    try {
+        const res = await fetch('/api/system-metrics');
+        if (!res.ok) throw new Error('API unavailable');
+        const data = await res.json();
+
+        // Model name
+        const modelChip = document.getElementById('cpu-model-chip');
+        if (modelChip && data.model) {
+            const cleanModel = data.model.replace(/\(R\)|\(TM\)/g, '').trim();
+            modelChip.textContent = `CPU: ${cleanModel}`;
+            modelChip.title = data.model;
+        }
+
+        // Total load
+        const loadChip = document.getElementById('cpu-load-chip');
+        if (loadChip) {
+            loadChip.textContent = `Total Load: ${data.overallUsage}% (${data.coreCount} Cores)`;
+        }
+
+        const cpuDisplay = document.getElementById('cpu-display');
+        if (cpuDisplay) {
+            cpuDisplay.textContent = `${data.overallUsage}%`;
+        }
+
+        // Host memory in status bar
+        const memUsage = document.getElementById('mem-usage');
+        if (memUsage && data.memory) {
+            const usedGB = (data.memory.usedMB / 1024).toFixed(1);
+            const totalGB = (data.memory.totalMB / 1024).toFixed(1);
+            memUsage.textContent = `${usedGB} / ${totalGB} GB (${data.memory.usedPercent}%)`;
+        }
+
+        // Per-core telemetry
+        if (data.perCore && data.perCore.length > 0) {
+            updateCpuCoresGrid(data.perCore);
+        }
+    } catch (err) {
+        renderFallbackCores();
+    }
 }
 
 // ─── Initialize ─────────────────────────
@@ -799,7 +871,11 @@ function init() {
     // Start render loop
     requestAnimationFrame(render);
 
-    // Start metrics update
+    // Initial and periodic host hardware metrics fetch
+    fetchHostMetrics();
+    setInterval(fetchHostMetrics, 1000);
+
+    // Start simulation latency metrics update
     setInterval(updateMetrics, 1000);
 
     // Initial landing zones update

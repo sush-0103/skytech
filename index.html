@@ -7,7 +7,7 @@
     <title>Autonomous Drone Simulation | UAV Control Center</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -15,34 +15,20 @@
     <header id="top-bar">
         <div class="top-bar-left">
             <div class="logo">
-                <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-                    <path d="M14 2L26 8V20L14 26L2 20V8L14 2Z" stroke="url(#logoGrad)" stroke-width="1.5" fill="none"/>
-                    <path d="M14 8L20 11V17L14 20L8 17V11L14 8Z" fill="url(#logoGrad)" opacity="0.6"/>
-                    <circle cx="14" cy="14" r="2.5" fill="#e2e8f0"/>
-                    <defs>
-                        <linearGradient id="logoGrad" x1="2" y1="2" x2="26" y2="26">
-                            <stop stop-color="#e2e8f0"/>
-                            <stop offset="1" stop-color="#7b61ff"/>
-                        </linearGradient>
-                    </defs>
-                </svg>
+                <span class="logo-badge">ADS</span>
                 <span class="logo-text">AUTODRONE<span class="logo-accent">SIM</span></span>
             </div>
             <nav class="top-nav">
                 <button class="nav-btn active" data-tooltip="Dashboard">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M1 1h6v6H1V1zm8 0h6v6H9V1zM1 9h6v6H1V9zm8 0h6v6H9V9z" opacity="0.8"/></svg>
                     <span>Dashboard</span>
                 </button>
                 <button class="nav-btn" data-tooltip="Simulation">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M3 2l10 6-10 6V2z"/></svg>
                     <span>Simulate</span>
                 </button>
                 <button class="nav-btn" data-tooltip="Analytics">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M1 14h14M3 10h2v4H3v-4zm4-4h2v8H7V6zm4-3h2v11h-2V3z"/></svg>
                     <span>Analytics</span>
                 </button>
                 <button class="nav-btn" data-tooltip="Settings">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 10a2 2 0 100-4 2 2 0 000 4zm6.32-1.906l-1.11-.64a5.3 5.3 0 000-1.908l1.11-.64a.25.25 0 00.09-.34l-1-1.73a.25.25 0 00-.34-.09l-1.11.64a5.2 5.2 0 00-1.65-.954V1.25a.25.25 0 00-.25-.25h-2a.25.25 0 00-.25.25v1.282a5.2 5.2 0 00-1.65.954l-1.11-.64a.25.25 0 00-.34.09l-1 1.73a.25.25 0 00.09.34l1.11.64a5.3 5.3 0 000 1.908l-1.11.64a.25.25 0 00-.09.34l1 1.73a.25.25 0 00.34.09l1.11-.64c.5.406 1.05.73 1.65.954v1.282c0 .138.112.25.25.25h2a.25.25 0 00.25-.25v-1.282a5.2 5.2 0 001.65-.954l1.11.64a.25.25 0 00.34-.09l1-1.73a.25.25 0 00-.09-.34z"/></svg>
                     <span>Settings</span>
                 </button>
             </nav>
@@ -53,7 +39,7 @@
                 <span class="status-text">System Ready</span>
             </div>
             <div class="sim-time">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor" opacity="0.5"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1" fill="none"/><path d="M7 3v4l3 2" stroke="currentColor" stroke-width="1" fill="none"/></svg>
+                <span class="sim-time-tag">UTC</span>
                 <span id="sim-clock">00:00:00</span>
             </div>
         </div>
@@ -63,42 +49,22 @@
         <!-- Left Tool Sidebar -->
         <aside id="left-sidebar">
             <div class="tool-group">
-                <button class="tool-btn active" data-tooltip="Select" id="tool-select">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path d="M4 2l12 8-6 1-2 6L4 2z"/></svg>
-                </button>
-                <button class="tool-btn" data-tooltip="Pan" id="tool-pan">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2v16M2 10h16M10 2l-2 3h4L10 2zM10 18l-2-3h4l-2 3zM2 10l3-2v4L2 10zM18 10l-3-2v4l3-2z"/></svg>
-                </button>
-                <button class="tool-btn" data-tooltip="Zoom" id="tool-zoom">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><circle cx="8" cy="8" r="5" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M12 12l5 5" stroke="currentColor" stroke-width="1.5"/><path d="M6 8h4M8 6v4" stroke="currentColor" stroke-width="1"/></svg>
-                </button>
-                <button class="tool-btn" data-tooltip="Measure" id="tool-measure">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path d="M3 17L17 3" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M3 17l3-1 M3 17l1-3" stroke="currentColor" stroke-width="1"/><path d="M17 3l-3 1 M17 3l-1 3" stroke="currentColor" stroke-width="1"/></svg>
-                </button>
+                <button class="tool-btn active" data-tooltip="Select" id="tool-select"><span class="tool-code">SEL</span></button>
+                <button class="tool-btn" data-tooltip="Pan" id="tool-pan"><span class="tool-code">PAN</span></button>
+                <button class="tool-btn" data-tooltip="Zoom" id="tool-zoom"><span class="tool-code">ZOM</span></button>
+                <button class="tool-btn" data-tooltip="Measure" id="tool-measure"><span class="tool-code">MSR</span></button>
             </div>
             <div class="tool-divider"></div>
             <div class="tool-group">
-                <button class="tool-btn" data-tooltip="Add Waypoint" id="tool-waypoint">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2C6.69 2 4 4.69 4 8c0 5 6 10 6 10s6-5 6-10c0-3.31-2.69-6-6-6zm0 8a2 2 0 110-4 2 2 0 010 4z"/></svg>
-                </button>
-                <button class="tool-btn" data-tooltip="Draw Route" id="tool-route">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path d="M3 17Q10 5 17 10" stroke="currentColor" stroke-width="1.5" fill="none" stroke-dasharray="3,2"/><circle cx="3" cy="17" r="2" fill="#e2e8f0"/><circle cx="17" cy="10" r="2" fill="#ff6b6b"/></svg>
-                </button>
-                <button class="tool-btn" data-tooltip="Add Drone" id="tool-drone">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1" fill="none"/><path d="M4 4l3 3M16 4l-3 3M4 16l3-3M16 16l-3-3" stroke="currentColor" stroke-width="1.2"/><circle cx="4" cy="4" r="1.5" fill="currentColor" opacity="0.6"/><circle cx="16" cy="4" r="1.5" fill="currentColor" opacity="0.6"/><circle cx="4" cy="16" r="1.5" fill="currentColor" opacity="0.6"/><circle cx="16" cy="16" r="1.5" fill="currentColor" opacity="0.6"/></svg>
-                </button>
-                <button class="tool-btn" data-tooltip="No-Fly Zone" id="tool-nofly">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M5 15L15 5" stroke="currentColor" stroke-width="1.5"/></svg>
-                </button>
+                <button class="tool-btn" data-tooltip="Add Waypoint" id="tool-waypoint"><span class="tool-code">WPT</span></button>
+                <button class="tool-btn" data-tooltip="Draw Route" id="tool-route"><span class="tool-code">RTE</span></button>
+                <button class="tool-btn" data-tooltip="Add Drone" id="tool-drone"><span class="tool-code">UAV</span></button>
+                <button class="tool-btn" data-tooltip="No-Fly Zone" id="tool-nofly"><span class="tool-code">NFZ</span></button>
             </div>
             <div class="tool-divider"></div>
             <div class="tool-group">
-                <button class="tool-btn" data-tooltip="Grid Toggle" id="tool-grid">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" opacity="0.7"><path d="M0 7h20M0 13h20M7 0v20M13 0v20" stroke="currentColor" stroke-width="0.5"/></svg>
-                </button>
-                <button class="tool-btn" data-tooltip="Layers" id="tool-layers">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path d="M10 3L2 8l8 5 8-5-8-5z" opacity="0.4"/><path d="M2 11l8 5 8-5" stroke="currentColor" stroke-width="1.2" fill="none"/><path d="M2 14l8 5 8-5" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
-                </button>
+                <button class="tool-btn" data-tooltip="Grid Toggle" id="tool-grid"><span class="tool-code">GRD</span></button>
+                <button class="tool-btn" data-tooltip="Layers" id="tool-layers"><span class="tool-code">LYR</span></button>
             </div>
         </aside>
 
@@ -111,15 +77,9 @@
                     <button class="canvas-tab">Telemetry</button>
                 </div>
                 <div class="canvas-controls">
-                    <button class="canvas-ctrl-btn" id="btn-play" title="Start Simulation">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M4 2l10 6-10 6V2z"/></svg>
-                    </button>
-                    <button class="canvas-ctrl-btn" id="btn-pause" title="Pause">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="3" y="2" width="3" height="12"/><rect x="10" y="2" width="3" height="12"/></svg>
-                    </button>
-                    <button class="canvas-ctrl-btn" id="btn-stop" title="Stop">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="3" y="3" width="10" height="10" rx="1"/></svg>
-                    </button>
+                    <button class="canvas-ctrl-btn" id="btn-play" title="Start Simulation">▶</button>
+                    <button class="canvas-ctrl-btn" id="btn-pause" title="Pause">❚❚</button>
+                    <button class="canvas-ctrl-btn" id="btn-stop" title="Stop">■</button>
                     <div class="speed-control">
                         <span class="speed-label">Speed</span>
                         <select id="sim-speed">
@@ -152,22 +112,15 @@
         <aside id="right-panel">
             <div class="panel-header">
                 <h2 class="panel-title">Parameters</h2>
-                <button class="panel-toggle" id="panel-collapse" title="Collapse panel">
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><path d="M9 3l-5 4 5 4V3z"/></svg>
-                </button>
+                <button class="panel-toggle" id="panel-collapse" title="Collapse panel">◀</button>
             </div>
             <div class="panel-content" id="panel-content">
 
                 <!-- Section 1: Air Traffic Simulation -->
                 <section class="param-section" id="section-traffic">
                     <div class="section-header" data-toggle="traffic-body">
-                        <div class="section-icon traffic-icon">
-                            <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor"><path d="M9 1L11 7h6l-5 4 2 6-5-4-5 4 2-6-5-4h6L9 1z"/></svg>
-                        </div>
                         <h3 class="section-title">Air Traffic Simulation</h3>
-                        <span class="section-chevron">
-                            <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><path d="M3 4l3 4 3-4"/></svg>
-                        </span>
+                        <span class="section-chevron">▾</span>
                     </div>
                     <div class="section-body open" id="traffic-body">
                         <div class="param-group">
@@ -193,27 +146,15 @@
                                 <button class="traffic-btn" data-level="4">High</button>
                                 <button class="traffic-btn" data-level="5">Very High</button>
                             </div>
-                            <div class="traffic-density-bar">
-                                <div class="density-fill" id="density-fill" style="width: 50%"></div>
-                                <div class="density-markers">
-                                    <span></span><span></span><span></span><span></span><span></span>
-                                </div>
-                            </div>
                         </div>
-
                     </div>
                 </section>
 
                 <!-- Section 2: Memory & Processing -->
                 <section class="param-section" id="section-memory">
                     <div class="section-header" data-toggle="memory-body">
-                        <div class="section-icon memory-icon">
-                            <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor"><rect x="2" y="2" width="14" height="14" rx="2" stroke="currentColor" stroke-width="1" fill="none"/><rect x="5" y="5" width="3" height="3" rx="0.5"/><rect x="10" y="5" width="3" height="3" rx="0.5"/><rect x="5" y="10" width="3" height="3" rx="0.5"/><rect x="10" y="10" width="3" height="3" rx="0.5"/></svg>
-                        </div>
                         <h3 class="section-title">Memory & Processing</h3>
-                        <span class="section-chevron">
-                            <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><path d="M3 4l3 4 3-4"/></svg>
-                        </span>
+                        <span class="section-chevron">▾</span>
                     </div>
                     <div class="section-body open" id="memory-body">
                         <!-- Memory Allocation -->
@@ -230,72 +171,22 @@
                                     <span>4 GB</span>
                                 </div>
                             </div>
-                            <div class="memory-bar-visual">
-                                <div class="mem-bar-segment" id="mem-pathfinding" style="width: 35%" data-tooltip="Pathfinding: 35%">
-                                    <span>Path</span>
-                                </div>
-                                <div class="mem-bar-segment seg-distance" id="mem-distance" style="width: 25%" data-tooltip="Distance Calc: 25%">
-                                    <span>Dist</span>
-                                </div>
-                                <div class="mem-bar-segment seg-avoidance" id="mem-avoidance" style="width: 20%" data-tooltip="Collision Avoidance: 20%">
-                                    <span>Avoid</span>
-                                </div>
-                                <div class="mem-bar-segment seg-telemetry" id="mem-telemetry" style="width: 12%" data-tooltip="Telemetry: 12%">
-                                    <span>Tel</span>
-                                </div>
-                                <div class="mem-bar-segment seg-free" id="mem-free" style="width: 8%" data-tooltip="Free: 8%">
-                                </div>
-                            </div>
                         </div>
-                        <!-- CPU Usage -->
+                        <!-- CPU Usage with Real Host Metrics -->
                         <div class="param-group">
                             <label class="param-label">
-                                CPU Usage
-                                <span class="param-value-display" id="cpu-display">4 Cores</span>
+                                <span>Host System CPU <span class="host-live-badge">LIVE</span></span>
+                                <span class="param-value-display" id="cpu-display">Host CPU</span>
                             </label>
-                            <div class="cpu-cores-grid">
-                                <div class="cpu-core active" id="core-1">
-                                    <div class="core-bar"><div class="core-fill" style="height:72%"></div></div>
-                                    <span class="core-label">C1</span>
-                                    <span class="core-pct">72%</span>
-                                </div>
-                                <div class="cpu-core active" id="core-2">
-                                    <div class="core-bar"><div class="core-fill" style="height:58%"></div></div>
-                                    <span class="core-label">C2</span>
-                                    <span class="core-pct">58%</span>
-                                </div>
-                                <div class="cpu-core active" id="core-3">
-                                    <div class="core-bar"><div class="core-fill" style="height:45%"></div></div>
-                                    <span class="core-label">C3</span>
-                                    <span class="core-pct">45%</span>
-                                </div>
-                                <div class="cpu-core active" id="core-4">
-                                    <div class="core-bar"><div class="core-fill" style="height:33%"></div></div>
-                                    <span class="core-label">C4</span>
-                                    <span class="core-pct">33%</span>
-                                </div>
-                                <div class="cpu-core" id="core-5">
-                                    <div class="core-bar"><div class="core-fill" style="height:0%"></div></div>
-                                    <span class="core-label">C5</span>
-                                    <span class="core-pct">—</span>
-                                </div>
-                                <div class="cpu-core" id="core-6">
-                                    <div class="core-bar"><div class="core-fill" style="height:0%"></div></div>
-                                    <span class="core-label">C6</span>
-                                    <span class="core-pct">—</span>
-                                </div>
-                                <div class="cpu-core" id="core-7">
-                                    <div class="core-bar"><div class="core-fill" style="height:0%"></div></div>
-                                    <span class="core-label">C7</span>
-                                    <span class="core-pct">—</span>
-                                </div>
-                                <div class="cpu-core" id="core-8">
-                                    <div class="core-bar"><div class="core-fill" style="height:0%"></div></div>
-                                    <span class="core-label">C8</span>
-                                    <span class="core-pct">—</span>
-                                </div>
+                            <div class="cpu-host-details">
+                                <span class="cpu-detail-chip" id="cpu-model-chip">CPU: Detecting...</span>
+                                <span class="cpu-detail-chip" id="cpu-load-chip">Total Load: 0%</span>
                             </div>
-                            <div class="slider-container">
+                            <div class="cpu-cores-grid" id="cpu-cores-grid">
+                                <!-- Populated dynamically from localhost system telemetry -->
+                            </div>
+                            <div class="slider-container" style="margin-top: 14px;">
+                                <label class="param-sublabel">Drone Processing Core Cap</label>
                                 <input type="range" class="custom-slider memory-slider" id="cpu-cores" min="1" max="8" step="1" value="4">
                                 <div class="slider-marks">
                                     <span>1 Core</span>
@@ -306,7 +197,7 @@
                         </div>
                         <!-- Processing Metrics -->
                         <div class="param-group">
-                            <label class="param-label">Processing Metrics</label>
+                            <label class="param-label">Processing Latency</label>
                             <div class="metrics-grid">
                                 <div class="metric-card">
                                     <span class="metric-label">Distance Calc</span>
@@ -336,13 +227,8 @@
                 <!-- Section 3: Power & Battery Management -->
                 <section class="param-section" id="section-power">
                     <div class="section-header" data-toggle="power-body">
-                        <div class="section-icon power-icon">
-                            <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor"><path d="M10 1L4 10h4l-1 7 7-9h-4l1-7z"/></svg>
-                        </div>
                         <h3 class="section-title">Power & Battery</h3>
-                        <span class="section-chevron">
-                            <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><path d="M3 4l3 4 3-4"/></svg>
-                        </span>
+                        <span class="section-chevron">▾</span>
                     </div>
                     <div class="section-body open" id="power-body">
                         <!-- Battery Level Control -->
@@ -372,54 +258,43 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- Power Consumption -->
+                        <!-- Power Consumption (CSS Meter - No SVG) -->
                         <div class="param-group">
-                            <label class="param-label">Power Consumption Rate</label>
-                            <div class="consumption-display">
-                                <div class="consumption-gauge">
-                                    <svg viewBox="0 0 120 70" class="gauge-svg">
-                                        <path d="M15 60 A45 45 0 0 1 105 60" stroke="#1e293b" stroke-width="8" fill="none" stroke-linecap="round"/>
-                                        <path d="M15 60 A45 45 0 0 1 105 60" stroke="url(#powerGrad)" stroke-width="8" fill="none" stroke-linecap="round"
-                                            stroke-dasharray="141.37" stroke-dashoffset="56.55" id="consumption-arc"/>
-                                        <defs>
-                                            <linearGradient id="powerGrad" x1="0" y1="0" x2="1" y2="0">
-                                                <stop stop-color="#22c55e"/>
-                                                <stop offset="0.5" stop-color="#eab308"/>
-                                                <stop offset="1" stop-color="#ef4444"/>
-                                            </linearGradient>
-                                        </defs>
-                                        <text x="60" y="52" text-anchor="middle" fill="#e2e8f0" font-size="14" font-weight="600" font-family="JetBrains Mono" id="consumption-text">245W</text>
-                                        <text x="60" y="65" text-anchor="middle" fill="#64748b" font-size="8" font-family="Inter">CONSUMPTION</text>
-                                    </svg>
+                            <label class="param-label">
+                                Power Consumption Rate
+                                <span class="param-value-display" id="consumption-text">245W</span>
+                            </label>
+                            <div class="consumption-meter">
+                                <div class="consumption-bar-track">
+                                    <div class="consumption-bar-fill" id="consumption-bar" style="width: 49%"></div>
+                                </div>
+                                <div class="slider-marks">
+                                    <span>100W Idle</span>
+                                    <span>300W Cruise</span>
+                                    <span>500W Max</span>
                                 </div>
                             </div>
                         </div>
-                        <!-- Flight Range Estimation -->
+                        <!-- Flight Range Estimation (Clean Indicators - No SVG) -->
                         <div class="param-group">
                             <label class="param-label">Flight Range Estimation</label>
                             <div class="range-estimation">
                                 <div class="range-stat">
-                                    <div class="range-icon-wrap safe">
-                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1l7 4v4c0 3.5-3 6.5-7 8-4-1.5-7-4.5-7-8V5l7-4z"/></svg>
-                                    </div>
+                                    <div class="range-dot safe"></div>
                                     <div class="range-info">
                                         <span class="range-val" id="range-max">12.4 km</span>
                                         <span class="range-desc">Max Range</span>
                                     </div>
                                 </div>
                                 <div class="range-stat">
-                                    <div class="range-icon-wrap warning">
-                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1L1 14h14L8 1zm0 4v4m0 2v1"/></svg>
-                                    </div>
+                                    <div class="range-dot warning"></div>
                                     <div class="range-info">
                                         <span class="range-val" id="range-safe">9.6 km</span>
                                         <span class="range-desc">Safe Return</span>
                                     </div>
                                 </div>
                                 <div class="range-stat">
-                                    <div class="range-icon-wrap danger">
-                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="7"/><path d="M5 5l6 6M11 5l-6 6" stroke="#0a0e1a" stroke-width="1.5"/></svg>
-                                    </div>
+                                    <div class="range-dot danger"></div>
                                     <div class="range-info">
                                         <span class="range-val" id="range-critical">2.1 km</span>
                                         <span class="range-desc">Critical Reserve</span>
@@ -516,7 +391,7 @@
         </div>
         <div class="status-right">
             <span class="status-item">FPS: <span id="fps-counter">60</span></span>
-            <span class="status-item">Mem: <span id="mem-usage">342 MB</span></span>
+            <span class="status-item">Host Mem: <span id="mem-usage">Loading...</span></span>
             <span class="status-item">GPU: <span id="gpu-usage">28%</span></span>
         </div>
     </footer>
