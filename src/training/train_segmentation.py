@@ -223,13 +223,18 @@ def main():
     parser.add_argument("--crop_size", type=int, default=512, help="Patch size")
     args = parser.parse_args()
 
-    # Device selection
+    # Safe device selection
+    device = torch.device("cpu")
     if torch.cuda.is_available():
-        device = torch.device("cuda")
-        torch.backends.cudnn.benchmark = True
-        print(f"Using GPU: {torch.cuda.get_device_name(0)}", flush=True)
-    else:
-        device = torch.device("cpu")
+        try:
+            test_t = torch.zeros(1, device="cuda")
+            device = torch.device("cuda")
+            torch.backends.cudnn.benchmark = True
+            print(f"Using GPU: {torch.cuda.get_device_name(0)}", flush=True)
+        except Exception as e:
+            print(f"GPU detected but CUDA kernels not built for this arch. Running on multi-threaded CPU.", flush=True)
+            
+    if device.type == "cpu":
         num_threads = os.cpu_count() or 24
         torch.set_num_threads(num_threads)
         print(f"Using CPU: Intel Core Ultra 9 with {num_threads} parallel threads", flush=True)
