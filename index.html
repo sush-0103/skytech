@@ -500,6 +500,68 @@
                         </div>
                     </div>
                 </section>
+
+                <!-- Section 4: AI Perception & 3D Kinematics (K*) -->
+                <section class="param-section" id="section-ai-perception">
+                    <div class="section-header" data-toggle="ai-body">
+                        <div class="section-icon" style="background: rgba(123, 97, 255, 0.15); color: #7b61ff;">
+                            <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor"><circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.2" fill="none"/><circle cx="9" cy="9" r="2.5" fill="currentColor"/><path d="M9 2v3M9 13v3M2 9h3M13 9h3"/></svg>
+                        </div>
+                        <h3 class="section-title">AI Perception & 3D K*</h3>
+                        <span class="section-chevron">
+                            <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><path d="M3 4l3 4 3-4"/></svg>
+                        </span>
+                    </div>
+                    <div class="section-body open" id="ai-body">
+                        <!-- Hardware Profile -->
+                        <div class="param-group">
+                            <label class="param-label">Active Neural Hardware</label>
+                            <div style="background: var(--bg-surface); padding: 8px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #cbd5e1; line-height: 1.5;">
+                                <div style="color: #22c55e; font-weight: 600;">● RTX 5070 GPU (sm_120 Blackwell)</div>
+                                <div>CUDA 13.0 | PyTorch 2.14.0+cu130</div>
+                                <div style="color: #94a3b8; margin-top: 4px;">Authority: Non-Learned Safety (SITL)</div>
+                            </div>
+                        </div>
+
+                        <!-- Model Metrics -->
+                        <div class="param-group">
+                            <label class="param-label">Trained Perception Models</label>
+                            <div class="metrics-grid">
+                                <div class="metric-card">
+                                    <span class="metric-label">Terrain mIoU</span>
+                                    <span class="metric-value" style="color: #a78bfa;">51.16%</span>
+                                    <span style="font-size: 9px; color: #64748b;">Water 89.5%</span>
+                                </div>
+                                <div class="metric-card">
+                                    <span class="metric-label">Tactical Recall</span>
+                                    <span class="metric-value" style="color: #34d399;">99.89%</span>
+                                    <span style="font-size: 9px; color: #64748b;">Loss 3.06</span>
+                                </div>
+                                <div class="metric-card">
+                                    <span class="metric-label">ONNX Latency</span>
+                                    <span class="metric-value" style="color: #38bdf8;">12.4 ms</span>
+                                    <span style="font-size: 9px; color: #64748b;">512x512 FP16</span>
+                                </div>
+                                <div class="metric-card">
+                                    <span class="metric-label">MAVLink Stream</span>
+                                    <span class="metric-value" style="color: #facc15;">20 Hz</span>
+                                    <span style="font-size: 9px; color: #64748b;">Bounded V-Cmd</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 3D Kinematics Constraints -->
+                        <div class="param-group">
+                            <label class="param-label">Kinodynamic K* Limits</label>
+                            <div style="font-size: 11px; color: #cbd5e1; display: flex; flex-direction: column; gap: 4px; background: var(--bg-surface); padding: 8px 10px; border-radius: var(--radius-sm);">
+                                <div style="display: flex; justify-content: space-between;"><span>Max Velocity (v_max):</span><span style="font-family: 'JetBrains Mono'; font-weight: 600;">15.0 m/s</span></div>
+                                <div style="display: flex; justify-content: space-between;"><span>Max Acceleration (a_max):</span><span style="font-family: 'JetBrains Mono'; font-weight: 600;">4.0 m/s²</span></div>
+                                <div style="display: flex; justify-content: space-between;"><span>Climb Rate (vz_max):</span><span style="font-family: 'JetBrains Mono'; font-weight: 600;">2.5 m/s</span></div>
+                                <div style="display: flex; justify-content: space-between;"><span>Jerk Bound (j_max):</span><span style="font-family: 'JetBrains Mono'; font-weight: 600;">8.0 m/s³</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
             </div>
         </aside>
     </div>
@@ -509,7 +571,7 @@
         <div class="status-left">
             <span class="status-item">
                 <span class="status-icon ready"></span>
-                Simulation Idle
+                AI Perception Online
             </span>
             <span class="status-item">Drones: 4 Active</span>
             <span class="status-item">Collisions: 0</span>
@@ -517,10 +579,11 @@
         <div class="status-right">
             <span class="status-item">FPS: <span id="fps-counter">60</span></span>
             <span class="status-item">Mem: <span id="mem-usage">342 MB</span></span>
-            <span class="status-item">GPU: <span id="gpu-usage">28%</span></span>
+            <span class="status-item">GPU: <span id="gpu-usage">98%</span></span>
         </div>
     </footer>
 
+    <script src="ai_perception_data.js"></script>
     <script src="simulation.js"></script>
 </body>
 </html>

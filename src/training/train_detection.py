@@ -94,6 +94,9 @@ class TacticalDetectionLoss(nn.Module):
         total_ctr_loss = 0.0
         num_pos_total = 0
         
+        # Pre-convert targets to numpy once to avoid GPU-CPU sync in loop
+        targets_np = targets.detach().cpu().numpy() if len(targets) > 0 else np.zeros((0, 6), dtype=np.float32)
+        
         for level_idx, stride in enumerate(self.strides):
             cls_p = cls_preds[level_idx]          # (B, C, H, W)
             reg_p = reg_preds[level_idx]          # (B, 4, H, W)
@@ -118,56 +121,66 @@ class TacticalDetectionLoss(nn.Module):
             reg_targets = torch.zeros((b, 4, h, w), device=device, dtype=torch.float32)
             ctr_targets = torch.zeros((b, 1, h, w), device=device, dtype=torch.float32)
             
-            if len(targets) > 0:
-                for b_i in range(b):
-                    b_targets = targets[targets[:, 0] == b_i]
-                    if len(b_targets) == 0:
+            if len(targets_np) > 0:
+                img_w_px = w * stride
+                img_h_px = h * stride
+                
+                for tgt in targets_np:
+                    b_i = int(tgt[0])
+                    c_id = int(tgt[1])
+                    if b_i >= b or c_id >= self.num_classes:
                         continue
+                        
+                    xc = tgt[2] * img_w_px
+                    yc = tgt[3] * img_h_px
+                    bw = tgt[4] * img_w_px
+                    bh = tgt[5] * img_h_px
                     
-                    # Convert normalized coords [xc, yc, bw, bh] to image pixel boxes [x1, y1, x2, y2]
-                    # Note: image size is h * stride x w * stride
-                    img_w_px = w * stride
-                    img_h_px = h * stride
+                    max_dim = max(bw, bh)
+                    if max_dim < min_sz or max_dim > max_sz:
+                        continue
+                        
+                    x1 = xc - bw / 2.0
+                    y1 = yc - bh / 2.0
+                    x2 = xc + bw / 2.0
+                    y2 = yc + bh / 2.0
                     
-                    for tgt in b_targets:
-                        c_id = int(tgt[1].item())
-                        if c_id >= self.num_classes:
-                            continue
-                        xc = tgt[2].item() * img_w_px
-                        yc = tgt[3].item() * img_h_px
-                        bw = tgt[4].item() * img_w_px
-                        bh = tgt[5].item() * img_h_px
+                    # Bounding grid box bounds
+                    gx1 = max(0, int(np.floor(x1 / stride)))
+                    gx2 = min(w, int(np.ceil(x2 / stride)))
+                    gy1 = max(0, int(np.floor(y1 / stride)))
+                    gy2 = min(h, int(np.ceil(y2 / stride)))
+                    if gx1 >= gx2 or gy1 >= gy2:
+                        continue
                         
-                        max_dim = max(bw, bh)
-                        if max_dim < min_sz or max_dim > max_sz:
-                            continue
-                            
-                        x1 = xc - bw / 2.0
-                        y1 = yc - bh / 2.0
-                        x2 = xc + bw / 2.0
-                        y2 = yc + bh / 2.0
+                    sub_xs = xs[b_i, gy1:gy2, gx1:gx2]
+                    sub_ys = ys[b_i, gy1:gy2, gx1:gx2]
+                    
+                    in_box = (sub_xs >= x1) & (sub_xs <= x2) & (sub_ys >= y1) & (sub_ys <= y2)
+                    if not in_box.any():
+                        continue
                         
-                        # Find grid points inside box
-                        in_box = (xs[b_i] >= x1) & (xs[b_i] <= x2) & (ys[b_i] >= y1) & (ys[b_i] <= y2)
-                        if not in_box.any():
-                            continue
-                            
-                        l = xs[b_i][in_box] - x1
-                        t = ys[b_i][in_box] - y1
-                        r = x2 - xs[b_i][in_box]
-                        b_off = y2 - ys[b_i][in_box]
-                        
-                        # Centerness target
-                        ctr = torch.sqrt((torch.minimum(l, r) / (torch.maximum(l, r) + 1e-7)) *
-                                         (torch.minimum(t, b_off) / (torch.maximum(t, b_off) + 1e-7)))
-                        
-                        pos_mask[b_i, in_box] = True
-                        cls_targets[b_i, c_id, in_box] = 1.0
-                        reg_targets[b_i, 0, in_box] = l
-                        reg_targets[b_i, 1, in_box] = t
-                        reg_targets[b_i, 2, in_box] = r
-                        reg_targets[b_i, 3, in_box] = b_off
-                        ctr_targets[b_i, 0, in_box] = ctr
+                    l = sub_xs[in_box] - x1
+                    t = sub_ys[in_box] - y1
+                    r = x2 - sub_xs[in_box]
+                    b_off = y2 - sub_ys[in_box]
+                    
+                    ctr = torch.sqrt((torch.minimum(l, r) / (torch.maximum(l, r) + 1e-7)) *
+                                     (torch.minimum(t, b_off) / (torch.maximum(t, b_off) + 1e-7)))
+                                     
+                    pos_sub = pos_mask[b_i, gy1:gy2, gx1:gx2]
+                    pos_sub[in_box] = True
+                    pos_mask[b_i, gy1:gy2, gx1:gx2] = pos_sub
+                    
+                    cls_sub = cls_targets[b_i, c_id, gy1:gy2, gx1:gx2]
+                    cls_sub[in_box] = 1.0
+                    cls_targets[b_i, c_id, gy1:gy2, gx1:gx2] = cls_sub
+                    
+                    reg_targets[b_i, 0, gy1:gy2, gx1:gx2][in_box] = l
+                    reg_targets[b_i, 1, gy1:gy2, gx1:gx2][in_box] = t
+                    reg_targets[b_i, 2, gy1:gy2, gx1:gx2][in_box] = r
+                    reg_targets[b_i, 3, gy1:gy2, gx1:gx2][in_box] = b_off
+                    ctr_targets[b_i, 0, gy1:gy2, gx1:gx2][in_box] = ctr
                         
             # Resize ignore masks to this level's grid resolution
             ign_ds = F.interpolate(ignore_masks.unsqueeze(1), size=(h, w), mode="nearest").squeeze(1)  # (B, H, W)
@@ -220,9 +233,9 @@ class TacticalDetectionLoss(nn.Module):
         return loss, total_cls_loss.item() / norm_factor, total_reg_loss.item() / norm_factor if num_pos_total > 0 else 0.0
 
 
-def train_detection(epochs=5, batch_size=8, target_size=512, sources=("visdrone", "auair"), lr=1e-3, export_onnx=True):
+def train_detection(epochs=10, batch_size=16, target_size=512, sources=("visdrone", "auair"), lr=1e-3, export_onnx=True):
     print("==================================================")
-    print("      TACTICAL AERIAL OBJECT DETECTOR TRAINING    ")
+    print("  TACTICAL AERIAL DETECTOR HIGH-POWER GPU TRAINING")
     print("==================================================")
     
     # Safe device selection
@@ -232,7 +245,7 @@ def train_detection(epochs=5, batch_size=8, target_size=512, sources=("visdrone"
             test_t = torch.zeros(1, device="cuda")
             device = torch.device("cuda")
             torch.backends.cudnn.benchmark = True
-            print(f"Using GPU: {torch.cuda.get_device_name(0)} (Compute Capability {torch.cuda.get_device_capability(0)})", flush=True)
+            print(f"Using GPU: {torch.cuda.get_device_name(0)} (Blackwell Compute Capability {torch.cuda.get_device_capability(0)})", flush=True)
         except Exception as e:
             print(f"GPU detected but CUDA kernels not built for this arch ({e}). Falling back to CPU.", flush=True)
             
@@ -241,8 +254,8 @@ def train_detection(epochs=5, batch_size=8, target_size=512, sources=("visdrone"
         torch.set_num_threads(num_threads)
         print(f"Using CPU: Intel Core Ultra 9 with {num_threads} parallel threads", flush=True)
     
-    # Loaders
-    print(f"Loading datasets: {sources} (target size: {target_size}x{target_size})...", flush=True)
+    # Loaders with pin_memory
+    print(f"Loading datasets: {sources} (batch size: {batch_size}, target size: {target_size}x{target_size})...", flush=True)
     train_loader, val_loader = get_detection_loaders(
         sources=sources,
         batch_size=batch_size,
@@ -258,34 +271,47 @@ def train_detection(epochs=5, batch_size=8, target_size=512, sources=("visdrone"
     criterion = TacticalDetectionLoss(strides=(4, 8, 16, 32), num_classes=NUM_CLASSES)
     optimizer = AdamW(model.parameters(), lr=lr, weight_decay=1e-4)
     scheduler = CosineAnnealingLR(optimizer, T_max=epochs, eta_min=1e-5)
+    scaler = torch.cuda.amp.GradScaler(enabled=(device.type == "cuda"))
     
     ckpt_dir = Path(r"c:\Users\ahile\Downloads\FlYtech\checkpoints")
     ckpt_dir.mkdir(parents=True, exist_ok=True)
     best_ckpt = ckpt_dir / "tactical_detector_best.pt"
     
-    print("\nStarting Tactical Detector training loop...", flush=True)
+    # Load existing checkpoint if available to continue refining
+    if best_ckpt.exists():
+        try:
+            ckpt_data = torch.load(best_ckpt, map_location=device, weights_only=False)
+            model.load_state_dict(ckpt_data.get("model_state_dict", ckpt_data))
+            print(f"Loaded existing weights from {best_ckpt} to continue high-power training!", flush=True)
+        except Exception as e:
+            print(f"Starting fresh weights: {e}", flush=True)
+    
+    print("\nStarting High-Power GPU Tactical Detector training loop...", flush=True)
     for epoch in range(1, epochs + 1):
         t0 = time.time()
         model.train()
         total_loss, total_cls, total_reg = 0.0, 0.0, 0.0
         num_batches = len(train_loader)
         
-        # Train epoch (sample up to 100 batches per epoch for fast iterative training)
+        # Train epoch (sample up to 100 batches per epoch)
         max_batches = min(num_batches, 100)
         for batch_idx, (images, targets, ignores) in enumerate(train_loader):
             if batch_idx >= max_batches:
                 break
                 
-            images = images.to(device)
-            targets = targets.to(device)
-            ignores = ignores.to(device)
+            images = images.to(device, non_blocking=True)
+            targets = targets.to(device, non_blocking=True)
+            ignores = ignores.to(device, non_blocking=True)
             
             optimizer.zero_grad()
-            cls_out, reg_out, ctr_out = model(images)
-            loss, cls_l, reg_l = criterion(cls_out, reg_out, ctr_out, targets, ignores)
             
-            loss.backward()
-            optimizer.step()
+            with torch.cuda.amp.autocast(enabled=(device.type == "cuda"), dtype=torch.float16):
+                cls_out, reg_out, ctr_out = model(images)
+                loss, cls_l, reg_l = criterion(cls_out, reg_out, ctr_out, targets, ignores)
+            
+            scaler.scale(loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
             
             total_loss += loss.item()
             total_cls += cls_l
@@ -326,7 +352,7 @@ def train_detection(epochs=5, batch_size=8, target_size=512, sources=("visdrone"
                 input_names=["input_image"],
                 output_names=["cls_p2", "reg_p2", "ctr_p2", "cls_p3", "reg_p3", "ctr_p3",
                               "cls_p4", "reg_p4", "ctr_p4", "cls_p5", "reg_p5", "ctr_p5"],
-                opset_version=14,
+                opset_version=18,
                 do_constant_folding=True
             )
             print(f"Successfully exported ONNX model ({onnx_path.stat().st_size / 1024:.1f} KB)")
@@ -336,8 +362,8 @@ def train_detection(epochs=5, batch_size=8, target_size=512, sources=("visdrone"
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train Tactical Aerial Object Detector")
-    parser.add_argument("--epochs", type=int, default=5, help="Number of epochs")
-    parser.add_argument("--batch_size", type=int, default=8, help="Batch size")
+    parser.add_argument("--epochs", type=int, default=20, help="Number of epochs")
+    parser.add_argument("--batch_size", type=int, default=16, help="Batch size")
     parser.add_argument("--target_size", type=int, default=512, help="Image resolution")
     parser.add_argument("--lr", type=float, default=1e-3, help="Learning rate")
     parser.add_argument("--sources", nargs="+", default=["visdrone", "auair"], help="Dataset sources")
