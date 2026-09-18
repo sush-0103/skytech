@@ -1,0 +1,48 @@
+{
+  "source_file": "map.osm",
+  "source_sha256": "2e39b2f30e53dfc718211a97fb46ef7ee189f7adda09e7e807e6af6100478575",
+  "attribution": "\u00a9 OpenStreetMap contributors",
+  "license": "ODbL 1.0",
+  "source_url": "https://www.openstreetmap.org/copyright",
+  "bounds_wgs84": {
+    "minlat": 25.13922,
+    "minlon": 55.25318,
+    "maxlat": 25.14657,
+    "maxlon": 55.26333
+  },
+  "origin_wgs84": {
+    "latitude": 25.142895000000003,
+    "longitude": 55.258255000000005,
+    "altitude_m": null
+  },
+  "coordinates": "Local ENU metres; WGS84 tangent linearization at origin; z=0 is assumed ground, not sea level",
+  "local_bounds_m": [
+    -511.72758604210276,
+    -407.0981920844361,
+    511.7275860413864,
+    407.0981920840426
+  ],
+  "dimensions_m": [
+    1023.4551720834892,
+    814.1963841684787
+  ],
+  "feature_counts": {
+    "building": 158,
+    "green": 11,
+    "road": 11
+  },
+  "source_road_pieces_before_merge": 209,
+  "height_sources": {
+    "assumed_8m": 157,
+    "osm_levels_times_assumed_3.2m": 1
+  },
+  "warnings": [],
+  "limitations": [
+    "Flat assumed terrain; no elevation survey",
+    "Generic building appearance; no real facade textures",
+    "Road widths estimated; bridges and tunnels flattened",
+    "OSM omissions remain; powerlines and trees not modeled",
+    "No authoritative aviation restrictions in this file; constraint collection starts empty",
+    "Geometry package only; no running SITL, sensor stream or collision engine integration"
+  ]
+}

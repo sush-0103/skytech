@@ -39,7 +39,7 @@ def test_safety_supervisor_invariants():
     )
     res = supervisor.evaluate_setpoint(nominal, now=t_now)
     assert res.accepted is True, f"Nominal setpoint should be accepted, got: {res.rejection_reason}"
-    assert res.state == "OFFBOARD_ACTIVE"
+    assert res.state == "GUIDED_ACTIVE"
     print("  [PASS] Nominal setpoint accepted (v=8.2 m/s, z=-25m)")
 
     # 2. Velocity Exceeded (Should Reject)
@@ -114,7 +114,7 @@ def test_safety_supervisor_invariants():
     for _ in range(12):
         supervisor.evaluate_setpoint(encroaching, current_obstacles=close_obs, now=t_now)
     assert supervisor.state == "EMERGENCY_LAND"
-    print("  [PASS] Sustained violations transition safely: OFFBOARD -> BRAKE -> HOLD -> EMERGENCY_LAND")
+    print("  [PASS] Sustained violations transition safely: GUIDED -> BRAKE -> HOLD -> EMERGENCY_LAND")
 
 
 def test_mavlink_udp_streaming():
@@ -170,9 +170,12 @@ def test_mavlink_udp_streaming():
     sample = setpoints[0]
     last_sample = setpoints[-1]
     assert sample.coordinate_frame == mavutil.mavlink.MAV_FRAME_LOCAL_NED
+    assert abs(sample.x - 120.5) < 0.01 and abs(sample.y - (-45.2)) < 0.01
     assert abs(sample.z - (-25.0)) < 6.0  # Operating altitude in nominal band
-    assert last_sample.vx > 3.0 and last_sample.vx <= 6.5  # Linear acceleration at 3.5 m/s^2 toward 6.5 m/s
-    print(f"  [PASS] MAVLink packet fields decoded with exact float parity (NED: Frame={sample.coordinate_frame}, Vx={last_sample.vx:.2f} m/s)")
+    assert sample.type_mask == 0x09C0
+    assert bridge.supervisor.rejection_counts["STALE_COMMAND"] > 0
+    assert abs(last_sample.vx) < 0.01  # stale planner command transitions to a safe stop
+    print(f"  [PASS] MAVLink NED setpoint mask verified; stale command stopped (Vx={last_sample.vx:.2f} m/s)")
     print("  [PASS] 20 Hz transmission cadence verified over UDP loopback socket")
 
 

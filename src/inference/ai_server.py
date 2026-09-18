@@ -81,9 +81,28 @@ device = "cpu"
 
 from src.interface.safety_supervisor import DeterministicSafetySupervisor, CandidateSetpoint
 from src.interface.mavlink_bridge import MAVLinkSITLBridge
+from src.navigation.osm_world import OSMWorld, RestrictedZone
+from src.navigation.reactive_avoidance import evaluate_escape_manifolds, ReactiveAvoidanceDecision
+from src.navigation.power_battery_manager import (
+    calculate_battery_reachability,
+    filter_air_traffic_by_radius,
+    compute_hardware_compute_metrics,
+    SAFE_LANDING_SITES
+)
 
 # Global MAVLink Bridge & Deterministic Safety Supervisor
-mavlink_supervisor = DeterministicSafetySupervisor()
+world_dir = root_dir / "worlds" / "dubai_osm"
+dubai_world = None
+try:
+    world_scenario = json.loads((world_dir / "smoke_scenario.json").read_text(encoding="utf-8"))
+    world_zones = [
+        RestrictedZone(z["id"], tuple(map(tuple, z["polygon_ned"])), z["reason"])
+        for z in world_scenario["restricted_zones"]
+    ]
+    dubai_world = OSMWorld.from_directory(world_dir, world_zones)
+except (OSError, KeyError, ValueError, json.JSONDecodeError) as exc:
+    print(f"[AI Service] Dubai static world unavailable: {exc}")
+mavlink_supervisor = DeterministicSafetySupervisor(static_world=dubai_world)
 mavlink_bridge = MAVLinkSITLBridge(
     target_ip="127.0.0.1",
     target_port=14550,
@@ -127,9 +146,9 @@ def init_neural_models():
             traffic_model = t_model
             print(f"[AI Service] OpenSky Airspace Traffic Predictor (91.73% F1) loaded on {device.upper()}")
 
-        # 3. Start MAVLink 20 Hz SITL Telemetry Bridge
-        mavlink_bridge.start()
-        print("[AI Service] MAVLink 20 Hz SITL Bridge online (Target: udp://127.0.0.1:14550)")
+        # This service generates demonstration trajectories, not vehicle feedback.
+        # Do not broadcast its synthetic commands or companion heartbeat to a GCS.
+        print("[AI Service] Demo mode: MAVLink transmission disabled; use a telemetry-backed controller for SITL")
             
     except Exception as e:
         print(f"[AI Service] Warning loading models: {e}")
@@ -232,6 +251,49 @@ def get_live_ai_metrics():
         
     active_primitive = PRIMITIVES[primitive_idx]
 
+    # 3-Way Evasion Manifold Calculation for Forward Building Proximity
+
+    cycle_period = 20.0
+    cycle_phase = (t % cycle_period) / cycle_period
+    scenario_idx = int(t / cycle_period) % 3
+
+    if cycle_phase < 0.70:
+        approach_progress = cycle_phase / 0.70
+        obs_dist = max(8.5, 38.0 - approach_progress * 28.0)
+        if scenario_idx == 0:
+            obs_rel_y = -7.5  # Building left -> Optimal: Veer Right
+            obs_h = 32.0
+            l_blk, r_blk = False, False
+        elif scenario_idx == 1:
+            obs_rel_y = 8.0   # Building right -> Optimal: Veer Left
+            obs_h = 28.0
+            l_blk, r_blk = False, False
+        else:
+            obs_rel_y = 0.5   # Low building ahead -> Optimal: Climb Top
+            obs_h = 9.0
+            l_blk, r_blk = True, True
+
+        reactive_avoidance = evaluate_escape_manifolds(
+            obstacle_distance_m=round(obs_dist, 1),
+            obstacle_rel_y=obs_rel_y,
+            obstacle_height_m=obs_h,
+            uav_speed_mps=4.0,
+            uav_alt_agl_m=6.0,
+            left_blocked=l_blk,
+            right_blocked=r_blk
+        )
+        active_primitive = reactive_avoidance.optimal_primitive
+    else:
+        reactive_avoidance = evaluate_escape_manifolds(
+            obstacle_distance_m=52.0,
+            obstacle_rel_y=-12.0,
+            obstacle_height_m=20.0,
+            uav_speed_mps=4.0,
+            uav_alt_agl_m=6.0
+        )
+        reactive_avoidance.threat_level = "CLEAR"
+        reactive_avoidance.optimal_action = "NOMINAL PATH RESUMED"
+
     # Evaluate OpenSky Airspace Traffic Predictor
     traffic_latency = 0.82
     conflict_risk_score = 4.2
@@ -247,6 +309,7 @@ def get_live_ai_metrics():
                 conflict_risk_score = round(float(torch.sigmoid(c_logits).item()) * 100, 1)
         except Exception:
             pass
+
 
     # Generate and feed companion flight setpoint into MAVLink Bridge & Safety Supervisor
     base_speed = 8.5
@@ -363,8 +426,25 @@ def get_live_ai_metrics():
         },
         "obstacles": live_targets,
         "cooperative_traffic": live_cooperative,
+        "reactive_avoidance": reactive_avoidance.to_dict(),
+        "power_battery": calculate_battery_reachability(
+            current_pos=(drone_x, drone_y, drone_z),
+            dest_pos=(300.0, 400.0, -6.0),
+            battery_pct=82.0,
+            speed_mps=base_speed * 0.5
+        ).to_dict(),
+        "air_traffic_sim": filter_air_traffic_by_radius(
+            all_flights=live_cooperative,
+            uav_pos=(drone_x, drone_y),
+            radius_km=2.5,
+            traffic_level="MEDIUM"
+        ),
+        "compute_memory": compute_hardware_compute_metrics(uav_speed_mps=base_speed * 0.5),
+        "safe_landing_sites": SAFE_LANDING_SITES,
         "mavlink": mavlink_bridge.get_status()
     }
+
+
 
 
 class AIRequestHandler(BaseHTTPRequestHandler):

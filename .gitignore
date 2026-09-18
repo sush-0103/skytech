@@ -24,9 +24,13 @@ __pycache__/
 *.py[cod]
 *$py.class
 .venv/
+.venv-map/
+*.blend1
 env/
 build/
 dist/
+runtime/
+scratch_check_*.js
 
 # OS
 Thumbs.db

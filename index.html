@@ -1,641 +1,699 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Autonomous Drone Simulation - Real-time UAV flight simulation with air traffic, memory optimization, and power management parameters">
-    <title>Autonomous Drone Simulation | UAV Control Center</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>In-Silico UAV Validation Engine | SITL Autonomous Aerospace Testbed</title>
+  <meta name="description" content="In-Silico UAV Validation Engine: ArduPilot + Mission Planner SITL, Deep Learning Perception, Kinodynamic Planning, Deterministic Safety Supervisor, and 3D Vehicle Twin.">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="styles.css">
+
+  <!-- Three.js Local Module Importmap (100% Offline Capable) -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "/vendor/three/three.module.js",
+      "three/addons/": "/vendor/three/addons/"
+    }
+  }
+  </script>
 </head>
-<body>
-    <!-- Top Navigation Bar -->
-    <header id="top-bar">
-        <div class="top-bar-left">
-            <div class="logo">
-                <span class="logo-badge">ADS</span>
-                <span class="logo-text">AUTODRONE<span class="logo-accent">SIM</span></span>
-            </div>
-            <nav class="top-nav">
-                <button class="nav-btn active" data-tooltip="Dashboard">
-                    <span>Dashboard</span>
-                </button>
-                <button class="nav-btn" data-tooltip="Simulation">
-                    <span>Simulate</span>
-                </button>
-                <button class="nav-btn" data-tooltip="Analytics">
-                    <span>Analytics</span>
-                </button>
-                <button class="nav-btn" data-tooltip="Settings">
-                    <span>Settings</span>
-                </button>
-            </nav>
-        </div>
-        <div class="top-bar-right">
-            <div class="status-indicator">
-                <span class="status-text">System Ready</span>
-            </div>
-            <div class="sim-time">
-                <span class="sim-time-tag">UTC</span>
-                <span id="sim-clock">00:00:00</span>
-            </div>
-        </div>
-    </header>
+<body class="aerospace-dashboard">
 
-    <div id="app-container">
-        <!-- Left Tool Sidebar -->
-        <aside id="left-sidebar">
-            <div class="tool-group">
-                <button class="tool-btn active" data-tooltip="Select" id="tool-select"><span class="tool-code">SEL</span></button>
-                <button class="tool-btn" data-tooltip="Pan" id="tool-pan"><span class="tool-code">PAN</span></button>
-                <button class="tool-btn" data-tooltip="Zoom" id="tool-zoom"><span class="tool-code">ZOM</span></button>
-                <button class="tool-btn" data-tooltip="Measure" id="tool-measure"><span class="tool-code">MSR</span></button>
-            </div>
-            <div class="tool-divider"></div>
-            <div class="tool-group">
-                <button class="tool-btn" data-tooltip="Add Waypoint" id="tool-waypoint"><span class="tool-code">WPT</span></button>
-                <button class="tool-btn" data-tooltip="Draw Route" id="tool-route"><span class="tool-code">RTE</span></button>
-                <button class="tool-btn" data-tooltip="Add Drone" id="tool-drone"><span class="tool-code">UAV</span></button>
-                <button class="tool-btn" data-tooltip="No-Fly Zone" id="tool-nofly"><span class="tool-code">NFZ</span></button>
-            </div>
-            <div class="tool-divider"></div>
-            <div class="tool-group">
-                <button class="tool-btn" data-tooltip="Grid Toggle" id="tool-grid"><span class="tool-code">GRD</span></button>
-                <button class="tool-btn" data-tooltip="Layers" id="tool-layers"><span class="tool-code">LYR</span></button>
-            </div>
-        </aside>
-
-        <!-- Central Simulation Canvas -->
-        <main id="simulation-canvas">
-            <div class="canvas-header">
-                <div class="canvas-tabs">
-                    <button class="canvas-tab active">3D Simulation</button>
-                    <button class="canvas-tab">Top View</button>
-                    <button class="canvas-tab">Telemetry</button>
-                </div>
-                <div class="canvas-controls">
-                    <button class="canvas-ctrl-btn" id="btn-play" title="Start Simulation">▶</button>
-                    <button class="canvas-ctrl-btn" id="btn-pause" title="Pause">❚❚</button>
-                    <button class="canvas-ctrl-btn" id="btn-stop" title="Stop">■</button>
-                    <div class="speed-control">
-                        <span class="speed-label">Speed</span>
-                        <select id="sim-speed">
-                            <option value="0.5">0.5x</option>
-                            <option value="1" selected>1x</option>
-                            <option value="2">2x</option>
-                            <option value="5">5x</option>
-                            <option value="10">10x</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-            <div class="canvas-viewport" id="viewport">
-                <canvas id="sim-canvas"></canvas>
-
-                <!-- Coordinate Bar -->
-                <div class="coord-bar">
-                    <span>X: <span id="coord-x">0.000</span></span>
-                    <span>Y: <span id="coord-y">0.000</span></span>
-                    <span>Z: <span id="coord-z">0.000</span></span>
-                    <span class="coord-divider">|</span>
-                    <span>Zoom: <span id="coord-zoom">100</span>%</span>
-                    <span class="coord-divider">|</span>
-                    <span>Grid: 50m</span>
-                </div>
-            </div>
-        </main>
-
-        <!-- Right Parameter Panel -->
-        <aside id="right-panel">
-            <div class="panel-header">
-                <h2 class="panel-title">Parameters</h2>
-                <button class="panel-toggle" id="panel-collapse" title="Collapse panel">◀</button>
-            </div>
-            <div class="panel-content" id="panel-content">
-
-                <!-- Section 1: Air Traffic Simulation -->
-                <section class="param-section" id="section-traffic">
-                    <div class="section-header" data-toggle="traffic-body">
-                        <h3 class="section-title">Air Traffic Simulation</h3>
-                        <span class="section-chevron">▾</span>
-                    </div>
-                    <div class="section-body open" id="traffic-body">
-                        <div class="param-group">
-                            <label class="param-label">
-                                Simulation Radius
-                                <span class="param-value-display" id="radius-display">5.0 km</span>
-                            </label>
-                            <div class="slider-container">
-                                <input type="range" class="custom-slider traffic-slider" id="traffic-radius" min="0.5" max="50" step="0.5" value="5">
-                                <div class="slider-marks">
-                                    <span>0.5 km</span>
-                                    <span>25 km</span>
-                                    <span>50 km</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="param-group">
-                            <label class="param-label">Traffic Density Level</label>
-                            <div class="traffic-level-selector">
-                                <button class="traffic-btn" data-level="1">Very Low</button>
-                                <button class="traffic-btn" data-level="2">Low</button>
-                                <button class="traffic-btn active" data-level="3">Medium</button>
-                                <button class="traffic-btn" data-level="4">High</button>
-                                <button class="traffic-btn" data-level="5">Very High</button>
-                            </div>
-                        </div>
-
-                        <!-- OpenSky ADS-B Conflict Predictor Telemetry -->
-                        <div class="param-group">
-                            <label class="param-label">OpenSky ADS-B Deconfliction Model</label>
-                            <div style="font-size: 10px; color: #cbd5e1; display: flex; flex-direction: column; gap: 5px; background: var(--bg-surface); padding: 8px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); font-family: 'JetBrains Mono', monospace;">
-                                <div style="display: flex; justify-content: space-between;">
-                                    <span>Model Accuracy:</span>
-                                    <span style="color: #38bdf8; font-weight: 600;">97.22% Acc | 91.73% F1</span>
-                                </div>
-                                <div style="display: flex; justify-content: space-between;">
-                                    <span>Conflict Precision:</span>
-                                    <span style="color: #22c55e; font-weight: 600;">100.00% (0 False Alarms)</span>
-                                </div>
-                                <div style="display: flex; justify-content: space-between;">
-                                    <span>Conflict Recall:</span>
-                                    <span style="color: #facc15; font-weight: 600;">84.72% (61/72 Caught)</span>
-                                </div>
-                                <div style="display: flex; justify-content: space-between;">
-                                    <span>Airspace Status:</span>
-                                    <span id="opensky-status" style="color: #22c55e; font-weight: 600;">SECTOR CLEAR (187 Tracks)</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Section 2: Memory & Processing -->
-                <section class="param-section" id="section-memory">
-                    <div class="section-header" data-toggle="memory-body">
-                        <h3 class="section-title">Memory & Processing</h3>
-                        <span class="section-chevron">▾</span>
-                    </div>
-                    <div class="section-body open" id="memory-body">
-                        <!-- Memory Allocation -->
-                        <div class="param-group">
-                            <label class="param-label">
-                                Memory Allocation
-                                <span class="param-value-display" id="memory-display">512 MB</span>
-                            </label>
-                            <div class="slider-container">
-                                <input type="range" class="custom-slider memory-slider" id="memory-alloc" min="64" max="4096" step="64" value="512">
-                                <div class="slider-marks">
-                                    <span>64 MB</span>
-                                    <span>2 GB</span>
-                                    <span>4 GB</span>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- CPU Usage with Real Host Metrics -->
-                        <div class="param-group cpu-param-group">
-                            <label class="param-label">
-                                <span>Host System CPU <span class="host-live-badge">LIVE</span></span>
-                                <span class="param-value-display" id="cpu-display">Host CPU</span>
-                            </label>
-                            <div class="cpu-host-details">
-                                <span class="cpu-detail-chip" id="cpu-model-chip">CPU: Detecting...</span>
-                                <span class="cpu-detail-chip" id="cpu-load-chip">Total Load: 0%</span>
-                            </div>
-                            <div class="cpu-cores-grid" id="cpu-cores-grid">
-                                <!-- Populated dynamically from localhost system telemetry -->
-                            </div>
-                            <div class="slider-container cpu-cap-container">
-                                <label class="param-sublabel">Drone Processing Core Cap</label>
-                                <input type="range" class="custom-slider memory-slider" id="cpu-cores" min="1" max="8" step="1" value="4">
-                                <div class="slider-marks">
-                                    <span>1 Core</span>
-                                    <span>4 Cores</span>
-                                    <span>8 Cores</span>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Processing Metrics -->
-                        <div class="param-group">
-                            <label class="param-label">Processing Latency</label>
-                            <div class="metrics-grid">
-                                <div class="metric-card">
-                                    <span class="metric-label">Distance Calc</span>
-                                    <span class="metric-value" id="metric-distance">2.4 ms</span>
-                                    <div class="metric-sparkline" id="spark-distance"></div>
-                                </div>
-                                <div class="metric-card">
-                                    <span class="metric-label">Path Optimize</span>
-                                    <span class="metric-value" id="metric-path">8.1 ms</span>
-                                    <div class="metric-sparkline" id="spark-path"></div>
-                                </div>
-                                <div class="metric-card">
-                                    <span class="metric-label">Collision Det.</span>
-                                    <span class="metric-value" id="metric-collision">1.2 ms</span>
-                                    <div class="metric-sparkline" id="spark-collision"></div>
-                                </div>
-                                <div class="metric-card">
-                                    <span class="metric-label">Frame Time</span>
-                                    <span class="metric-value" id="metric-frame">16.7 ms</span>
-                                    <div class="metric-sparkline" id="spark-frame"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Section 3: Power & Battery Management -->
-                <section class="param-section" id="section-power">
-                    <div class="section-header" data-toggle="power-body">
-                        <h3 class="section-title">Power & Battery</h3>
-                        <span class="section-chevron">▾</span>
-                    </div>
-                    <div class="section-body open" id="power-body">
-                        <!-- Battery Level Control -->
-                        <div class="param-group">
-                            <label class="param-label">
-                                Battery Level
-                                <span class="param-value-display" id="battery-display">78%</span>
-                            </label>
-                            <div class="battery-visual">
-                                <div class="battery-shell">
-                                    <div class="battery-fill" id="battery-fill" style="width: 78%">
-                                        <div class="battery-glow"></div>
-                                    </div>
-                                    <div class="battery-tip"></div>
-                                </div>
-                                <div class="battery-info">
-                                    <span class="battery-voltage">22.4V</span>
-                                    <span class="battery-type">6S LiPo</span>
-                                </div>
-                            </div>
-                            <div class="slider-container">
-                                <input type="range" class="custom-slider power-slider" id="battery-level" min="0" max="100" step="1" value="78">
-                                <div class="slider-marks">
-                                    <span>0%</span>
-                                    <span>50%</span>
-                                    <span>100%</span>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Power Consumption (CSS Meter - No SVG) -->
-                        <div class="param-group">
-                            <label class="param-label">
-                                Power Consumption Rate
-                                <span class="param-value-display" id="consumption-text">245W</span>
-                            </label>
-                            <div class="consumption-meter">
-                                <div class="consumption-bar-track">
-                                    <div class="consumption-bar-fill" id="consumption-bar" style="width: 49%"></div>
-                                </div>
-                                <div class="slider-marks">
-                                    <span>100W Idle</span>
-                                    <span>300W Cruise</span>
-                                    <span>500W Max</span>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Flight Range Estimation (Clean Indicators - No Dots) -->
-                        <div class="param-group">
-                            <label class="param-label">Flight Range Estimation</label>
-                            <div class="range-estimation">
-                                <div class="range-stat">
-                                    <div class="range-info">
-                                        <span class="range-val" id="range-max">12.4 km</span>
-                                        <span class="range-desc">Max Range</span>
-                                    </div>
-                                </div>
-                                <div class="range-stat">
-                                    <div class="range-info">
-                                        <span class="range-val" id="range-safe">9.6 km</span>
-                                        <span class="range-desc">Safe Return</span>
-                                    </div>
-                                </div>
-                                <div class="range-stat">
-                                    <div class="range-info">
-                                        <span class="range-val" id="range-critical">2.1 km</span>
-                                        <span class="range-desc">Critical Reserve</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Safe Landing Points -->
-                        <div class="param-group">
-                            <label class="param-label">Safe Landing Zones</label>
-                            <div class="landing-zones" id="landing-zones">
-                                <div class="landing-zone reachable">
-                                    <div class="zone-info">
-                                        <span class="zone-name">Zone Alpha - Helipad A3</span>
-                                        <span class="zone-dist">1.2 km NE</span>
-                                    </div>
-                                    <span class="zone-status">Reachable</span>
-                                </div>
-                                <div class="landing-zone reachable">
-                                    <div class="zone-info">
-                                        <span class="zone-name">Zone Bravo - Open Field</span>
-                                        <span class="zone-dist">3.4 km SW</span>
-                                    </div>
-                                    <span class="zone-status">Reachable</span>
-                                </div>
-                                <div class="landing-zone reachable">
-                                    <div class="zone-info">
-                                        <span class="zone-name">Zone Charlie - Rooftop B7</span>
-                                        <span class="zone-dist">5.1 km E</span>
-                                    </div>
-                                    <span class="zone-status">Reachable</span>
-                                </div>
-                                <div class="landing-zone warning">
-                                    <div class="zone-info">
-                                        <span class="zone-name">Zone Delta - Parking Lot</span>
-                                        <span class="zone-dist">8.9 km N</span>
-                                    </div>
-                                    <span class="zone-status">Marginal</span>
-                                </div>
-                                <div class="landing-zone unreachable">
-                                    <div class="zone-info">
-                                        <span class="zone-name">Zone Echo - Base Station</span>
-                                        <span class="zone-dist">14.2 km W</span>
-                                    </div>
-                                    <span class="zone-status">Unreachable</span>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Emergency Protocol -->
-                        <div class="param-group">
-                            <div class="emergency-toggle">
-                                <label class="param-label">Emergency Auto-Land</label>
-                                <label class="switch">
-                                    <input type="checkbox" id="emergency-autoland" checked>
-                                    <span class="switch-slider"></span>
-                                </label>
-                            </div>
-                            <p class="param-description">When enabled, drones will autonomously land at the nearest safe zone when battery drops below critical threshold.</p>
-                            <div class="threshold-control">
-                                <label class="param-label">
-                                    Critical Threshold
-                                    <span class="param-value-display" id="threshold-display">15%</span>
-                                </label>
-                                <div class="slider-container">
-                                    <input type="range" class="custom-slider power-slider critical" id="critical-threshold" min="5" max="30" step="1" value="15">
-                                    <div class="slider-marks">
-                                        <span>5%</span>
-                                        <span>15%</span>
-                                        <span>30%</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Section 4: AI Perception & 3D Kinematics (K*) -->
-                <section class="param-section" id="section-ai-perception">
-                    <div class="section-header" data-toggle="ai-body">
-                        <div class="section-icon" style="background: rgba(123, 97, 255, 0.15); color: #7b61ff;">
-                            <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor"><circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.2" fill="none"/><circle cx="9" cy="9" r="2.5" fill="currentColor"/><path d="M9 2v3M9 13v3M2 9h3M13 9h3"/></svg>
-                        </div>
-                        <h3 class="section-title">AI Perception & 3D K*</h3>
-                        <span class="section-chevron">
-                            <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><path d="M3 4l3 4 3-4"/></svg>
-                        </span>
-                    </div>
-                    <div class="section-body open" id="ai-body">
-                        <!-- Hardware Profile -->
-                        <div class="param-group">
-                            <label class="param-label">Active Neural Hardware</label>
-                            <div style="background: var(--bg-surface); padding: 8px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #cbd5e1; line-height: 1.5;">
-                                <div id="ai-hardware-title" style="color: #22c55e; font-weight: 600;">● RTX 5070 GPU (sm_120 Blackwell)</div>
-                                <div id="ai-hardware-vram">CUDA 13.0 | PyTorch 2.14.0+cu130 | VRAM: 7.7 GB</div>
-                                <div style="color: #94a3b8; margin-top: 4px;">Authority: Non-Learned Safety (SITL)</div>
-                            </div>
-                        </div>
-
-                        <!-- Model Metrics -->
-                        <div class="param-group">
-                            <label class="param-label">Trained Neural Stack</label>
-                            <div class="metrics-grid">
-                                <div class="metric-card">
-                                    <span class="metric-label">Terrain mIoU</span>
-                                    <span class="metric-value" id="ai-terrain-miou" style="color: #a78bfa;">67.12%</span>
-                                    <span style="font-size: 9px; color: #64748b;">Acc: 71.56%</span>
-                                </div>
-                                <div class="metric-card">
-                                    <span class="metric-label">Tactical F1</span>
-                                    <span class="metric-value" id="ai-detector-recall" style="color: #34d399;">80.01%</span>
-                                    <span id="ai-detector-loss" style="font-size: 9px; color: #64748b;">Loss 0.4578</span>
-                                </div>
-                                <div class="metric-card">
-                                    <span class="metric-label">3D K* Loss</span>
-                                    <span class="metric-value" id="ai-astar-loss" style="color: #38bdf8;">0.2938</span>
-                                    <span style="font-size: 9px; color: #64748b;">27 Primitives</span>
-                                </div>
-                                <div class="metric-card">
-                                    <span class="metric-label">Neural Latency</span>
-                                    <span class="metric-value" id="ai-onnx-latency" style="color: #facc15;">1.2 ms</span>
-                                    <span style="font-size: 9px; color: #64748b;">sm_120 FP16</span>
-                                </div>
-                                <div class="metric-card">
-                                    <span class="metric-label">OpenSky 4D F1</span>
-                                    <span class="metric-value" id="ai-opensky-f1" style="color: #38bdf8;">91.73%</span>
-                                    <span id="ai-opensky-prec" style="font-size: 9px; color: #22c55e;">Prec: 100.0%</span>
-                                </div>
-                                <div class="metric-card">
-                                    <span class="metric-label">OpenSky Latency</span>
-                                    <span class="metric-value" id="ai-opensky-latency" style="color: #4ade80;">0.8 ms</span>
-                                    <span style="font-size: 9px; color: #64748b;">ResNet+Attn</span>
-                                </div>
-                                <div class="metric-card">
-                                    <span class="metric-label">C-MAPSS RUL F1</span>
-                                    <span class="metric-value" id="ai-cmapss-f1" style="color: #f43f5e;">88.41%</span>
-                                    <span id="ai-cmapss-prec" style="font-size: 9px; color: #22c55e;">Prec: 84.4%</span>
-                                </div>
-                                <div class="metric-card">
-                                    <span class="metric-label">Predicted RUL</span>
-                                    <span class="metric-value" id="ai-cmapss-rul" style="color: #fbbf24;">94.7 cyc</span>
-                                    <span id="ai-cmapss-latency" style="font-size: 9px; color: #64748b;">0.09 ms FP16</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 3D Neural Kinematic Planner Live Status -->
-                        <div class="param-group">
-                            <label class="param-label">3D Kinematic A* Neural Avoidance</label>
-                            <div style="font-size: 10px; color: #cbd5e1; display: flex; flex-direction: column; gap: 5px; background: var(--bg-surface); padding: 8px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); font-family: 'JetBrains Mono', monospace;">
-                                <div style="display: flex; justify-content: space-between;">
-                                    <span>Planner Status:</span>
-                                    <span id="ai-avoidance-status" style="color: #22c55e; font-weight: 600;">STANDBY (CLEAR)</span>
-                                </div>
-                                <div style="display: flex; justify-content: space-between;">
-                                    <span>Active Primitive:</span>
-                                    <span id="ai-active-primitive" style="color: #38bdf8; font-weight: 600;">DIRECT_CRUISE_VECTOR</span>
-                                </div>
-                                <div style="display: flex; justify-content: space-between;">
-                                    <span>Dynamic Replan:</span>
-                                    <span style="color: #a78bfa;">60 Hz Real-Time</span>
-                                </div>
-                                <div style="display: flex; justify-content: space-between;">
-                                    <span>Clearance Margin:</span>
-                                    <span id="ai-clearance-margin" style="color: #facc15; font-weight: 600;">> 90m</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 3D Kinematics Constraints -->
-                        <div class="param-group">
-                            <label class="param-label">Kinodynamic K* Limits</label>
-                            <div style="font-size: 11px; color: #cbd5e1; display: flex; flex-direction: column; gap: 4px; background: var(--bg-surface); padding: 8px 10px; border-radius: var(--radius-sm);">
-                                <div style="display: flex; justify-content: space-between;"><span>Max Velocity (v_max):</span><span style="font-family: 'JetBrains Mono'; font-weight: 600;">15.0 m/s</span></div>
-                                <div style="display: flex; justify-content: space-between;"><span>Max Acceleration (a_max):</span><span style="font-family: 'JetBrains Mono'; font-weight: 600;">4.0 m/s²</span></div>
-                                <div style="display: flex; justify-content: space-between;"><span>Climb Rate (vz_max):</span><span style="font-family: 'JetBrains Mono'; font-weight: 600;">2.5 m/s</span></div>
-                                <div style="display: flex; justify-content: space-between;"><span>Jerk Bound (j_max):</span><span style="font-family: 'JetBrains Mono'; font-weight: 600;">8.0 m/s³</span></div>
-                            </div>
-                        </div>
-
-                        <!-- MAVLink 20 Hz SITL Telemetry Bridge -->
-                        <div class="param-group">
-                            <label class="param-label">MAVLink 20 Hz SITL Telemetry Bridge</label>
-                            <div style="font-size: 10px; color: #cbd5e1; display: flex; flex-direction: column; gap: 5px; background: var(--bg-surface); padding: 8px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); font-family: 'JetBrains Mono', monospace;">
-                                <div style="display: flex; justify-content: space-between;">
-                                    <span>Link Target:</span>
-                                    <span style="color: #38bdf8; font-weight: 600;">UDP 127.0.0.1:14550</span>
-                                </div>
-                                <div style="display: flex; justify-content: space-between;">
-                                    <span>Stream Cadence:</span>
-                                    <span id="mavlink-stream-rate" style="color: #22c55e; font-weight: 600;">20.0 Hz (50ms)</span>
-                                </div>
-                                <div style="display: flex; justify-content: space-between;">
-                                    <span>Safety Supervisor:</span>
-                                    <span id="mavlink-supervisor-state" style="color: #22c55e; font-weight: 600;">ARMED (100% Accept)</span>
-                                </div>
-                                <div style="display: flex; justify-content: space-between;">
-                                    <span>Packets Sent:</span>
-                                    <span id="mavlink-packets-count" style="color: #facc15; font-weight: 600;">0 pkts</span>
-                                </div>
-                                <div style="display: flex; justify-content: space-between;">
-                                    <span>Commanded Vel (NED):</span>
-                                    <span id="mavlink-command-vel" style="color: #38bdf8; font-weight: 600;">Vx: 0.0 Vy: 0.0 m/s</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Section 5: Autonomous Scenario Stress-Testing Matrix (Milestone 5) -->
-                <section class="param-section" id="section-stress-matrix">
-                    <div class="section-header" data-toggle="stress-body">
-                        <div class="section-icon" style="background: rgba(239, 68, 68, 0.15); color: #ef4444;">
-                            <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor">
-                                <path d="M10 2L3 11h5l-1 5 7-9h-5l1-5z" stroke="currentColor" stroke-width="1.2" fill="none"/>
-                            </svg>
-                        </div>
-                        <h3 class="section-title">Stress Matrix & Benchmarks</h3>
-                        <span class="section-chevron">
-                            <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><path d="M3 4l3 4 3-4"/></svg>
-                        </span>
-                    </div>
-                    <div class="section-body open" id="stress-body">
-                        <!-- Stress Injection Controls -->
-                        <div class="param-group">
-                            <label class="param-label">Scenario Stress Injection</label>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
-                                <button class="stress-btn" id="btn-stress-popup" title="Spawn pop-up intruder 20m ahead">
-                                    <span class="stress-btn-title">⚠ Pop-Up Intruder</span>
-                                    <span class="stress-btn-desc">20m Rapid Jink</span>
-                                </button>
-                                <button class="stress-btn" id="btn-stress-wind" title="Apply 12 m/s crosswind gust">
-                                    <span class="stress-btn-title">༄ Wind Shear Gust</span>
-                                    <span class="stress-btn-desc">12 m/s Crosswind</span>
-                                </button>
-                                <button class="stress-btn" id="btn-stress-latency" title="Simulate 180ms sensor latency spike">
-                                    <span class="stress-btn-title">⏱ Latency Spike</span>
-                                    <span class="stress-btn-desc">>50ms Brake Intercept</span>
-                                </button>
-                                <button class="stress-btn" id="btn-stress-autoland" title="Trigger critical battery emergency auto-land">
-                                    <span class="stress-btn-title">⚡ Emer. Auto-Land</span>
-                                    <span class="stress-btn-desc">Paved Corridor Divert</span>
-                                </button>
-                            </div>
-                            <button class="stress-btn benchmark-btn" id="btn-run-benchmark" style="width: 100%; border-color: #38bdf8;">
-                                <span class="stress-btn-title" style="color: #38bdf8;">⚙ Run 100-Trial Monte Carlo Benchmark</span>
-                                <span class="stress-btn-desc">In-Silico Digital Twin Safety Certification</span>
-                            </button>
-                        </div>
-
-                        <!-- Live Scenario Telemetry Status -->
-                        <div class="param-group">
-                            <label class="param-label">Live Invariant Supervision</label>
-                            <div style="font-size: 10px; color: #cbd5e1; display: flex; flex-direction: column; gap: 5px; background: var(--bg-surface); padding: 8px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); font-family: 'JetBrains Mono', monospace;">
-                                <div style="display: flex; justify-content: space-between;">
-                                    <span>Stress Mode:</span>
-                                    <span id="stress-mode-label" style="color: #22c55e; font-weight: 600;">NOMINAL_CRUISE</span>
-                                </div>
-                                <div style="display: flex; justify-content: space-between;">
-                                    <span>Supervisor Invariant:</span>
-                                    <span id="stress-invariant-status" style="color: #38bdf8; font-weight: 600;">ALL INVARIANTS SATISFIED</span>
-                                </div>
-                                <div style="display: flex; justify-content: space-between;">
-                                    <span>Dynamic Separation:</span>
-                                    <span id="stress-dynamic-sep" style="color: #facc15; font-weight: 600;">78.4 m (> 15.0m buffer)</span>
-                                </div>
-                                <div style="display: flex; justify-content: space-between;">
-                                    <span>Wind Vector Drift:</span>
-                                    <span id="stress-wind-vector" style="color: #94a3b8; font-weight: 600;">0.0 m/s (Trim 0°)</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Monte Carlo 100-Trial Digital Twin Audit Card -->
-                        <div class="param-group">
-                            <label class="param-label">100-Trial Benchmark Results</label>
-                            <div class="metrics-grid">
-                                <div class="metric-card">
-                                    <span class="metric-label">Pass Rate</span>
-                                    <span class="metric-value" id="bench-pass-rate" style="color: #22c55e;">100.0%</span>
-                                    <span style="font-size: 9px; color: #64748b;">100/100 Trials</span>
-                                </div>
-                                <div class="metric-card">
-                                    <span class="metric-label">Collisions</span>
-                                    <span class="metric-value" id="bench-collisions" style="color: #22c55e;">0</span>
-                                    <span style="font-size: 9px; color: #64748b;">0.0% Failure</span>
-                                </div>
-                                <div class="metric-card">
-                                    <span class="metric-label">Min Clearance</span>
-                                    <span class="metric-value" id="bench-clearance" style="color: #facc15;">15.55 m</span>
-                                    <span style="font-size: 9px; color: #64748b;">Buffer 15.0m</span>
-                                </div>
-                                <div class="metric-card">
-                                    <span class="metric-label">Stale Intercept</span>
-                                    <span class="metric-value" id="bench-stale" style="color: #38bdf8;">25/25</span>
-                                    <span style="font-size: 9px; color: #64748b;">Failsafe Brake</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            </div>
-        </aside>
+  <!-- Top Main Header -->
+  <header id="main-header">
+    <div class="header-left">
+      <h1 class="engine-title">In-Silico UAV Validation Engine</h1>
+      <div class="engine-subtitle">
+        <span>ArduPilot + Mission Planner SITL</span>
+        <span class="sep">|</span>
+        <span>Perception</span>
+        <span class="sep">|</span>
+        <span>Planning</span>
+        <span class="sep">|</span>
+        <span>Safety</span>
+        <span class="sep">|</span>
+        <span>Large-Scale Scenario Validation</span>
+      </div>
     </div>
-
-    <!-- Bottom Status Bar -->
-    <footer id="status-bar">
-        <div class="status-left">
-            <span class="status-item">
-                <span class="status-icon ready"></span>
-                <span id="sim-status-text">AI Perception Online</span>
-            </span>
-            <span class="status-item">Drones: 1 Active</span>
-            <span class="status-item">Collisions: 0</span>
+    
+    <!-- Top Status Indicators (6 Aerospace Chips) -->
+    <div class="header-status-chips">
+      <!-- 1. ArduPilot SITL -->
+      <div class="status-chip sitl-chip">
+        <span class="chip-glyph">💻</span>
+        <div class="chip-texts">
+          <span class="chip-label">ArduPilot SITL</span>
+          <span class="chip-val text-emerald"><span class="status-pulse-dot"></span> Running (SITL)</span>
         </div>
-        <div class="status-right">
-            <span class="status-item">FPS: <span id="fps-counter">60</span></span>
-            <span class="status-item">Host Mem: <span id="mem-usage">Loading...</span></span>
-            <span class="status-item">GPU: <span id="gpu-usage">98%</span></span>
-        </div>
-    </footer>
+      </div>
 
-    <script src="ai_perception_data.js"></script>
-    <script src="simulation.js"></script>
+      <!-- 2. GUIDED Mode -->
+      <div class="status-chip">
+        <span class="chip-glyph">✈️</span>
+        <div class="chip-texts">
+          <span class="chip-label text-cyan" id="uav-mode">GUIDED</span>
+          <span class="chip-val">Mode</span>
+        </div>
+      </div>
+
+      <!-- 3. Update Rate -->
+      <div class="status-chip">
+        <span class="chip-glyph">📈</span>
+        <div class="chip-texts">
+          <span class="chip-label" id="uav-rate">20 Hz</span>
+          <span class="chip-val">Update Rate</span>
+        </div>
+      </div>
+
+      <!-- 4. MAVLink Endpoint -->
+      <div class="status-chip">
+        <span class="chip-glyph">🔗</span>
+        <div class="chip-texts">
+          <span class="chip-label font-mono">TCP 127.0.0.1:5762</span>
+          <span class="chip-val">MAVLink</span>
+        </div>
+      </div>
+
+      <!-- 5. EKF3 Navigation -->
+      <div class="status-chip ekf-chip">
+        <span class="chip-glyph-badge">✓</span>
+        <div class="chip-texts">
+          <span class="chip-label text-emerald">EKF3 Healthy</span>
+          <span class="chip-val">Navigation</span>
+        </div>
+      </div>
+
+      <!-- 6. Dubai Clock -->
+      <div class="status-chip clock-chip">
+        <div class="chip-texts">
+          <span class="chip-label font-mono" id="dubai-clock">2026-09-19 01:05:00</span>
+          <span class="chip-val">UTC+4 (Dubai)</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Grid Workspace -->
+  <main id="app-grid">
+    
+    <!-- ================= LEFT COLUMN: PERCEPTION & DATASETS ================= -->
+    <section class="grid-col col-left">
+      
+      <!-- Perception (Forward Camera) -->
+      <div class="card perception-card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <h2 class="card-title">Perception</h2>
+            <span class="card-sub-tag">(Forward)</span>
+          </div>
+          <!-- Quick Obstacle Avoidance Scenario Selector Chips -->
+          <div class="perception-chips-bar" id="perception-chips-bar">
+            <button class="avoid-chip active" id="chip-mode-auto" data-mode="auto" title="Telemetry-synced dynamic proximity">AUTO</button>
+            <button class="avoid-chip" id="chip-mode-right" data-mode="right" title="Building on Left -> Optimal: Veer Right">RIGHT ➔</button>
+            <button class="avoid-chip" id="chip-mode-left" data-mode="left" title="Building on Right -> Optimal: Veer Left">⬅ LEFT</button>
+            <button class="avoid-chip" id="chip-mode-top" data-mode="top" title="Low Barrier Ahead -> Optimal: Climb Top">⬆ TOP</button>
+          </div>
+          <span class="badge-pill font-mono">640×480</span>
+        </div>
+
+        <div class="camera-viewport-box" id="camera-viewport">
+          <canvas id="camera-hud-canvas"></canvas>
+
+          <!-- Top Tactical Evasion Decision HUD Banner -->
+          <div class="camera-evasion-banner" id="camera-evasion-banner">
+            <span class="banner-pulse-icon">⚡</span>
+            <div class="banner-content">
+              <div class="banner-main" id="banner-action">OPTIMAL PATH: VEER RIGHT (+18°)</div>
+              <div class="banner-sub font-mono" id="banner-primitive">KINEMATIC PRIMITIVE: BANK_RIGHT_EVADE (3.8 m/s)</div>
+            </div>
+          </div>
+
+          <!-- Building Obstacle Tactical Bounding Box with Corner Brackets -->
+          <div class="hud-building-box threat-caution" id="hud-building-box" style="top: 25%; left: 32%; width: 36%; height: 50%;">
+            <div class="b-bracket b-bracket-tl"></div>
+            <div class="b-bracket b-bracket-tr"></div>
+            <div class="b-bracket b-bracket-bl"></div>
+            <div class="b-bracket b-bracket-br"></div>
+            
+            <div class="b-header-tags">
+              <span class="building-type-badge" id="tag-building-type">BUILDING 0.96</span>
+              <span class="building-dist-badge font-mono" id="tag-building-dist">DIST: 14.8m</span>
+            </div>
+
+            <div class="b-center-reticle">
+              <span class="b-crosshair">+</span>
+              <span class="b-hazard-label" id="tag-building-hazard">PROXIMITY HAZARD</span>
+            </div>
+
+            <div class="b-footer-tags">
+              <span class="building-ttc-badge font-mono" id="tag-building-ttc">TTC 3.7s</span>
+              <span class="building-rec-badge" id="tag-building-rec">OPTIMAL: VEER RIGHT</span>
+            </div>
+          </div>
+
+          <!-- Escape Manifolds Quick Status -->
+          <div class="escape-manifolds-bar" id="escape-manifolds-bar">
+            <div class="manifold-item" id="mf-left"><span class="mf-dir">LEFT:</span> <span class="mf-val">3.2m</span> <span class="mf-status mf-blocked">BLKD</span></div>
+            <div class="manifold-item optimal" id="mf-right"><span class="mf-dir">RIGHT:</span> <span class="mf-val">14.8m</span> <span class="mf-status mf-optimal">OPT</span></div>
+            <div class="manifold-item" id="mf-top"><span class="mf-dir">TOP:</span> <span class="mf-val">+8m</span> <span class="mf-status mf-feasible">OK</span></div>
+          </div>
+
+          <!-- Tactical HUD Flight Mode Chip -->
+          <div class="camera-hud-status-tag font-mono">
+            <span class="status-pulse-dot"></span> SENSOR POD: FORWARD EO/IR
+          </div>
+        </div>
+      </div>
+
+
+      <!-- Semantic Terrain Mask -->
+      <div class="card terrain-card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <h2 class="card-title">Semantic Terrain Mask</h2>
+          </div>
+        </div>
+        <div class="terrain-container">
+          <img id="terrain-image" src="/data_processed/terrain_mask_clean.jpg" alt="Dubai Semantic Terrain Segmentation">
+        </div>
+      </div>
+
+      <!-- Real-Time AI Telemetry & Dynamic Constraints Card -->
+      <div class="card telemetry-params-card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <h2 class="card-title">AI Telemetry & Constraints</h2>
+          </div>
+          <!-- 3 Feature Tabs -->
+          <div class="telem-tabs-bar">
+            <button class="telem-tab active" id="tab-traffic" data-tab="traffic">Traffic</button>
+            <button class="telem-tab" id="tab-compute" data-tab="compute">Compute</button>
+            <button class="telem-tab" id="tab-power" data-tab="power">Power</button>
+          </div>
+        </div>
+
+        <div class="telem-panels-container">
+          <!-- TAB 1: Air Traffic Simulation -->
+          <div class="telem-panel active" id="panel-traffic">
+            <div class="telem-control-group">
+              <div class="telem-label-row">
+                <span class="telem-label">Detection Radius:</span>
+                <span class="telem-val font-mono text-cyan" id="disp-traffic-radius">3.0 km</span>
+              </div>
+              <div class="telem-chips-row" id="traffic-radius-chips">
+                <button class="telem-mini-chip" data-radius="0.5">0.5 km</button>
+                <button class="telem-mini-chip" data-radius="1.5">1.5 km</button>
+                <button class="telem-mini-chip active" data-radius="3.0">3.0 km</button>
+                <button class="telem-mini-chip" data-radius="5.0">5.0 km</button>
+                <button class="telem-mini-chip" data-radius="10.0">10 km</button>
+              </div>
+            </div>
+
+            <div class="telem-control-group">
+              <div class="telem-label-row">
+                <span class="telem-label">Traffic Density:</span>
+                <span class="telem-val font-mono text-amber" id="disp-traffic-level">Medium</span>
+              </div>
+              <div class="telem-chips-row" id="traffic-level-chips">
+                <button class="telem-mini-chip" data-level="very_low">V.Low</button>
+                <button class="telem-mini-chip" data-level="low">Low</button>
+                <button class="telem-mini-chip active" data-level="medium">Med</button>
+                <button class="telem-mini-chip" data-level="high">High</button>
+                <button class="telem-mini-chip" data-level="very_high">V.High</button>
+              </div>
+            </div>
+
+            <div class="telem-metrics-grid font-mono">
+              <div class="telem-stat-box">
+                <div class="t-stat-lbl">Contacts Tracked</div>
+                <div class="t-stat-val text-cyan" id="traffic-count-val">14 acft</div>
+              </div>
+              <div class="telem-stat-box">
+                <div class="t-stat-lbl">Min Separation</div>
+                <div class="t-stat-val text-emerald" id="traffic-sep-val">840 m</div>
+              </div>
+              <div class="telem-stat-box">
+                <div class="t-stat-lbl">Airspace Risk</div>
+                <div class="t-stat-val text-emerald" id="traffic-risk-val">LOW (0.02)</div>
+              </div>
+              <div class="telem-stat-box">
+                <div class="t-stat-lbl">Collision Alert</div>
+                <div class="t-stat-val text-emerald" id="traffic-alert-val">CLEAR</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 2: Hardware Compute & Memory Space -->
+          <div class="telem-panel" id="panel-compute">
+            <div class="telem-metrics-grid font-mono" style="grid-template-columns: 1fr 1fr; margin-top: 2px;">
+              <div class="telem-stat-box">
+                <div class="t-stat-lbl">Path RAM Footprint</div>
+                <div class="t-stat-val text-cyan" id="compute-ram-val">14.8 MB</div>
+              </div>
+              <div class="telem-stat-box">
+                <div class="t-stat-lbl">A* CPU Search Load</div>
+                <div class="t-stat-val text-amber" id="compute-cpu-val">18.4%</div>
+              </div>
+              <div class="telem-stat-box">
+                <div class="t-stat-lbl">Graph Node Exp.</div>
+                <div class="t-stat-val text-emerald" id="compute-nodes-val">1,420 /s</div>
+              </div>
+              <div class="telem-stat-box">
+                <div class="t-stat-lbl">Re-Plan Latency</div>
+                <div class="t-stat-val text-emerald" id="compute-replan-val">12 ms</div>
+              </div>
+            </div>
+
+            <div class="compute-prog-block">
+              <div class="prog-meta">
+                <span class="prog-name">Kinematic Frontier Cache</span>
+                <span class="prog-num font-mono" id="compute-cache-pct">34%</span>
+              </div>
+              <div class="mini-prog-bar">
+                <div class="mini-prog-fill" id="compute-cache-fill" style="width: 34%;"></div>
+              </div>
+            </div>
+
+            <div class="compute-prog-block">
+              <div class="prog-meta">
+                <span class="prog-name">TensorRT Obstacle Engine</span>
+                <span class="prog-num font-mono text-cyan" id="compute-trt-val">22.4 FPS</span>
+              </div>
+              <div class="mini-prog-bar">
+                <div class="mini-prog-fill bg-cyan" style="width: 75%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 3: Power Loss & Safe Recovery Landing -->
+          <div class="telem-panel" id="panel-power">
+            <div class="telem-control-group">
+              <div class="telem-label-row">
+                <span class="telem-label">Simulated Battery Level:</span>
+                <span class="telem-val font-mono" id="disp-battery-pct" style="color: #10b981; font-weight: 700;">82%</span>
+              </div>
+              <input type="range" min="5" max="100" step="1" value="82" id="slider-battery" class="hud-slider">
+            </div>
+
+            <div class="power-status-banner safe font-mono" id="power-status-banner">
+              <span class="p-banner-icon" id="power-banner-icon">⚡</span>
+              <div class="p-banner-texts">
+                <div class="p-banner-status" id="power-banner-status">SUFFICIENT POWER: GOAL REACHABLE</div>
+                <div class="p-banner-detail" id="power-banner-detail">Reserve: +2.82 km surplus to destination</div>
+              </div>
+            </div>
+
+            <div class="safe-recovery-sites-box">
+              <div class="safe-sites-header">
+                <span class="s-hdr-title">Safe Stopping Recovery Sites</span>
+                <span class="s-hdr-rec font-mono text-cyan" id="disp-selected-site">STANDBY</span>
+              </div>
+              <div class="safe-sites-list font-mono" id="safe-sites-list">
+                <div class="safe-site-row active" id="site-row-1">
+                  <span class="site-dot"></span>
+                  <span class="site-name">Highway Strip A-1</span>
+                  <span class="site-dist">0.21 km</span>
+                  <span class="site-status text-emerald">CLEAR</span>
+                </div>
+                <div class="safe-site-row" id="site-row-2">
+                  <span class="site-dot"></span>
+                  <span class="site-name">Al-Wasl Open Pad 4</span>
+                  <span class="site-dist">0.48 km</span>
+                  <span class="site-status text-emerald">CLEAR</span>
+                </div>
+                <div class="safe-site-row" id="site-row-3">
+                  <span class="site-dot"></span>
+                  <span class="site-name">Jumeirah Helipad 9</span>
+                  <span class="site-dist">0.92 km</span>
+                  <span class="site-status text-muted">SEC</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ================= CENTER COLUMN: MISSION PLAN ================= -->
+    <section class="grid-col col-center">
+      <div class="card mission-card">
+        <div class="mission-header">
+          <div class="mission-title-group">
+            <span class="mission-icon">🗺️</span>
+            <h2 class="mission-title">Mission Plan</h2>
+            <span class="mission-region font-mono">(dubai_2_5d.blend)</span>
+          </div>
+          <div class="mission-header-controls">
+            <div class="view-switch">
+              <button class="switch-btn active" id="btn-switch-blender">Blender 2.5D</button>
+              <button class="switch-btn" id="btn-switch-aerial">Aerial Satellite</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Canvas Container with Interactive Map HUD -->
+        <div class="mission-viewport" id="mission-viewport">
+          <canvas id="mission-canvas"></canvas>
+
+          <!-- Floating Playback Bar (Bottom) -->
+          <div class="mission-playback-bar">
+            <button class="pb-btn" id="btn-play" title="Play SITL Flight Trace">▶</button>
+            <button class="pb-btn" id="btn-pause" title="Pause">❚❚</button>
+            <button class="pb-btn" id="btn-restart" title="Reset Flight">↺</button>
+            
+            <div class="pb-slider-box">
+              <input type="range" id="trace-scrubber" min="0" max="500" value="0" step="1">
+            </div>
+
+            <div class="pb-speed-group">
+              <button class="speed-btn active" data-speed="1">1x</button>
+              <button class="speed-btn" data-speed="2">2x</button>
+              <button class="speed-btn" data-speed="5">5x</button>
+              <button class="speed-btn" data-speed="10">10x</button>
+            </div>
+
+            <div class="pb-telemetry-readout font-mono">
+              <span id="pb-ned">NED: -360.0, -400.0, -6.0m</span>
+              <span class="pb-sep">|</span>
+              <span id="pb-speed">0.0 m/s</span>
+              <span class="pb-sep">|</span>
+              <span id="pb-time">0.0s / 479s</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= RIGHT COLUMN: SAFETY & VEHICLE TWIN ================= -->
+    <section class="grid-col col-right">
+      
+      <!-- Safety Supervisor -->
+      <div class="card safety-card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <h2 class="card-title">Safety Supervisor</h2>
+          </div>
+          <span class="badge-nominal">All checks nominal</span>
+        </div>
+        
+        <div class="safety-invariants-list">
+          
+          <!-- 1. Geofence -->
+          <div class="safety-row">
+            <div class="safety-left">
+              <span class="safety-check-icon">✓</span>
+              <div class="safety-meta">
+                <div class="safety-name">Geofence</div>
+                <div class="safety-desc">Within permitted area</div>
+              </div>
+            </div>
+            <span class="badge-pass" id="badge-geofence">PASS</span>
+          </div>
+
+          <!-- 2. Clearance -->
+          <div class="safety-row">
+            <div class="safety-left">
+              <span class="safety-check-icon">✓</span>
+              <div class="safety-meta">
+                <div class="safety-name">Clearance</div>
+                <div class="safety-desc">Maintains safe distance (buildings/terrain)</div>
+              </div>
+            </div>
+            <span class="badge-pass" id="badge-clearance">PASS</span>
+          </div>
+
+          <!-- 3. Setpoint Age -->
+          <div class="safety-row">
+            <div class="safety-left">
+              <span class="safety-check-icon">✓</span>
+              <div class="safety-meta">
+                <div class="safety-name">Setpoint age</div>
+                <div class="safety-desc">Latest setpoint &lt; 500 ms</div>
+              </div>
+            </div>
+            <span class="badge-pass" id="badge-setpoint">PASS</span>
+          </div>
+
+          <!-- 4. Planner Deadline -->
+          <div class="safety-row">
+            <div class="safety-left">
+              <span class="safety-check-icon">✓</span>
+              <div class="safety-meta">
+                <div class="safety-name">Planner deadline</div>
+                <div class="safety-desc">Plan computed within budget</div>
+              </div>
+            </div>
+            <span class="badge-pass" id="badge-deadline">PASS</span>
+          </div>
+
+          <!-- 5. Command -->
+          <div class="safety-row">
+            <div class="safety-left">
+              <span class="safety-check-icon">✓</span>
+              <div class="safety-meta">
+                <div class="safety-name">Command</div>
+                <div class="safety-desc">Mode change / mission command</div>
+              </div>
+            </div>
+            <span class="badge-accepted" id="badge-command">ACCEPTED</span>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Vehicle Twin (SITL) -->
+      <div class="card twin-card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <h2 class="card-title">Vehicle Twin</h2>
+            <span class="card-sub-tag">(SITL)</span>
+          </div>
+        </div>
+        
+        <div class="twin-viewport-box" id="twin-viewport-box">
+          <canvas id="twin-canvas"></canvas>
+        </div>
+
+        <div class="twin-caption">
+          Visual only — physics parameterized separately
+        </div>
+
+        <!-- Telemetry Specs Table -->
+        <div class="twin-specs-table font-mono">
+          <div class="spec-row">
+            <span class="spec-key">Frame</span>
+            <span class="spec-val">Quadrotor (generic)</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-key">Firmware</span>
+            <span class="spec-val">ArduPilot SITL (Copter)</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-key">Initial position</span>
+            <span class="spec-val" id="spec-init-pos">25.0769, 55.1536, 30 m (AMSL)</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-key">Mass (model)</span>
+            <span class="spec-val">1.5 kg (visual)</span>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ================= BOTTOM ROW: SCENARIO VALIDATION ================= -->
+    <section class="grid-row-bottom">
+      
+      <!-- End-to-End Latency Chart -->
+      <div class="card latency-card">
+        <div class="latency-card-header">
+          <div class="lat-title-block">
+            <div class="card-section-label">Scenario Validation</div>
+            <div class="lat-main-title">End-to-End Latency</div>
+          </div>
+          <div class="lat-metrics-summary">
+            <span class="lat-stat">Mean: <strong>28 ms</strong></span>
+            <span class="lat-sep">|</span>
+            <span class="lat-stat">p99: <strong>42 ms</strong></span>
+          </div>
+          <div class="lat-legend-row font-mono">
+            <span class="leg-dot perception-dot"></span> Perception
+            <span class="leg-dot planning-dot"></span> Planning
+            <span class="leg-dot control-dot"></span> Control
+          </div>
+        </div>
+        <div class="latency-chart-box">
+          <canvas id="latency-canvas"></canvas>
+        </div>
+      </div>
+
+      <!-- Scorecards & Progress -->
+      <div class="card scorecard-card">
+        <div class="scorecard-top">
+          <div class="score-progress-header">
+            <span class="prog-title">Scenario Progress</span>
+            <span class="prog-steps font-mono" id="score-steps">847 / 1,000</span>
+          </div>
+          <div class="score-prog-bar">
+            <div class="score-prog-fill" id="score-prog-fill" style="width: 84.7%;"></div>
+          </div>
+          <div class="prog-pct font-mono" id="score-pct">84.7%</div>
+        </div>
+
+        <!-- Scenario Progress Interactive Mission Parameters Toolbar -->
+        <div class="mission-params-toolbar">
+          <!-- Waypoint Selector Chips -->
+          <div class="m-param-row">
+            <div class="m-param-lbl-row">
+              <span class="m-param-lbl">Active Waypoint:</span>
+              <span class="m-param-badge font-mono text-cyan" id="disp-active-wp">WP 1 (START)</span>
+            </div>
+            <div class="waypoint-chips-scroll" id="waypoint-chips-container">
+              <button class="wp-chip active" data-wp="0">WP 1</button>
+              <button class="wp-chip" data-wp="1">WP 2</button>
+              <button class="wp-chip" data-wp="2">WP 3</button>
+              <button class="wp-chip" data-wp="3">WP 4</button>
+              <button class="wp-chip" data-wp="4">WP 5</button>
+              <button class="wp-chip" data-wp="5">WP 6</button>
+              <button class="wp-chip" data-wp="6">WP 7</button>
+              <button class="wp-chip" data-wp="7">WP 8</button>
+              <button class="wp-chip" data-wp="8">WP 9</button>
+              <button class="wp-chip" data-wp="9">WP 10</button>
+              <button class="wp-chip" data-wp="10">GOAL</button>
+            </div>
+          </div>
+
+          <!-- Dual Sliders: Speed & Cruise Altitude -->
+          <div class="m-param-dual">
+            <div class="m-slider-cell">
+              <div class="m-param-lbl-row">
+                <span class="m-param-lbl">Real Flight Speed:</span>
+                <span class="m-param-val font-mono text-emerald" id="disp-slider-speed">4.2 m/s</span>
+              </div>
+              <input type="range" min="0" max="8.0" step="0.2" value="4.2" id="slider-flight-speed" class="hud-slider m-slider">
+              <div class="m-slider-sub font-mono">0.0 (Hov/Stop) ➔ 8.0 m/s</div>
+            </div>
+
+            <div class="m-slider-cell">
+              <div class="m-param-lbl-row">
+                <span class="m-param-lbl">Cruise Altitude:</span>
+                <span class="m-param-val font-mono text-cyan" id="disp-slider-alt">6.0 m</span>
+              </div>
+              <input type="range" min="3.0" max="25.0" step="0.5" value="6.0" id="slider-flight-alt" class="hud-slider m-slider">
+              <div class="m-slider-sub font-mono">3.0m ➔ 25.0m AGL</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="scorecard-grid">
+          <!-- Collisions -->
+          <div class="score-cell">
+            <div class="cell-label">Collisions</div>
+            <div class="cell-number text-emerald" id="val-collisions">0</div>
+            <div class="cell-target">(target: 0)</div>
+          </div>
+
+          <!-- Restricted entries -->
+          <div class="score-cell">
+            <div class="cell-label">Restricted entries</div>
+            <div class="cell-number text-emerald" id="val-restricted">0</div>
+            <div class="cell-target">(target: 0)</div>
+          </div>
+
+          <!-- Minimum clearance -->
+          <div class="score-cell">
+            <div class="cell-label">Minimum clearance</div>
+            <div class="cell-number text-emerald" id="val-clearance">8.4 m</div>
+            <div class="cell-target">(requirement: ≥ 5 m)</div>
+          </div>
+
+          <!-- Planner p99 -->
+          <div class="score-cell">
+            <div class="cell-label">Planner p99</div>
+            <div class="cell-number" id="val-p99">42 ms</div>
+            <div class="cell-target">(requirement: ≤ 100 ms)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Event Log -->
+      <div class="card event-log-card">
+        <div class="event-card-header">
+          <h2 class="card-title">Event Log</h2>
+          <div class="event-filter-tabs">
+            <button class="ev-tab active" data-filter="all">All</button>
+            <button class="ev-tab" data-filter="warnings">Warnings</button>
+            <button class="ev-tab" data-filter="events">Events</button>
+            <span class="ev-counter-tag font-mono" id="ev-counter">5 events</span>
+          </div>
+        </div>
+        
+        <div class="event-table-scroll">
+          <table class="event-table font-mono">
+            <thead>
+              <tr>
+                <th style="width: 22%;">Time (s)</th>
+                <th style="width: 53%;">Event</th>
+                <th style="width: 25%;">Severity</th>
+              </tr>
+            </thead>
+            <tbody id="event-table-body">
+              <tr data-type="info">
+                <td>32.4</td>
+                <td>Wind shear (7.2 m/s)</td>
+                <td><span class="sev-tag tag-info">INFO</span></td>
+              </tr>
+              <tr data-type="info">
+                <td>88.1</td>
+                <td>Moving obstacle (vehicle)</td>
+                <td><span class="sev-tag tag-info">INFO</span></td>
+              </tr>
+              <tr data-type="warning">
+                <td>146.7</td>
+                <td>Sensor latency (+35 ms)</td>
+                <td><span class="sev-tag tag-warning">WARNING</span></td>
+              </tr>
+              <tr data-type="warning">
+                <td>201.3</td>
+                <td>Camera freeze (200 ms)</td>
+                <td><span class="sev-tag tag-warning">WARNING</span></td>
+              </tr>
+              <tr data-type="info">
+                <td>276.9</td>
+                <td>Network packet loss (2%)</td>
+                <td><span class="sev-tag tag-info">INFO</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Bottom Global Footer -->
+  <footer id="main-footer">
+    <div class="footer-left">
+      Software-in-the-Loop Validation for Safe and Intelligent UAV Operations
+    </div>
+    <div class="footer-right">
+      <span>Map: Dubai (local/offline)</span>
+      <span class="fsep">|</span>
+      <span>SITL only — no real flight</span>
+      <span class="fsep">|</span>
+      <span>For research and educational use</span>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script type="module" src="simulation.js"></script>
 </body>
 </html>

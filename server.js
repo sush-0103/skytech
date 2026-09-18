@@ -18,7 +18,10 @@ const MIME_TYPES = {
     '.ico': 'image/x-icon',
     '.woff2': 'font/woff2',
     '.woff': 'font/woff',
-    '.ttf': 'font/ttf'
+    '.ttf': 'font/ttf',
+    '.glb': 'model/gltf-binary',
+    '.gltf': 'model/gltf+json',
+    '.jsonl': 'application/x-jsonlines'
 };
 
 let prevCpus = os.cpus();
@@ -103,6 +106,74 @@ const server = http.createServer((req, res) => {
             res.end(JSON.stringify(fallback));
         });
         return;
+    }
+
+    // API endpoint for latest SITL flight trace data
+    if (req.url === '/api/flight-trace') {
+        const runtimeDir = path.join(__dirname, 'runtime');
+        let latestTrace = null;
+        try {
+            const dirs = fs.readdirSync(runtimeDir).filter(d => d.startsWith('sitl-')).sort().reverse();
+            for (const d of dirs) {
+                const candidate = path.join(runtimeDir, d, 'flight_trace.jsonl');
+                if (fs.existsSync(candidate)) {
+                    latestTrace = candidate;
+                    break;
+                }
+            }
+            if (latestTrace) {
+                const lines = fs.readFileSync(latestTrace, 'utf-8').trim().split('\n');
+                const sampleRate = Math.max(1, Math.floor(lines.length / 500));
+                const sampled = lines.filter((_, i) => i % sampleRate === 0).map(l => {
+                    try { return JSON.parse(l); } catch (e) { return null; }
+                }).filter(Boolean);
+                res.writeHead(200, {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                });
+                return res.end(JSON.stringify({ total: lines.length, points: sampled }));
+            }
+        } catch (e) {
+            console.error('Error reading flight trace:', e);
+        }
+        res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        return res.end(JSON.stringify({ total: 0, points: [] }));
+    }
+
+    // API endpoint for Dubai world map geometry and scenario
+    if (req.url === '/api/dubai-world') {
+        try {
+            const worldDir = path.join(__dirname, 'worlds', 'dubai_osm');
+            const manifest = JSON.parse(fs.readFileSync(path.join(worldDir, 'manifest.json'), 'utf-8'));
+            const scenario = JSON.parse(fs.readFileSync(path.join(worldDir, 'smoke_scenario.json'), 'utf-8'));
+            const geometry = JSON.parse(fs.readFileSync(path.join(worldDir, 'geometry.json'), 'utf-8'));
+            let flightResult = null;
+            try {
+                const runtimeDir = path.join(__dirname, 'runtime');
+                const dirs = fs.readdirSync(runtimeDir).filter(d => d.startsWith('sitl-')).sort().reverse();
+                for (const d of dirs) {
+                    const candidate = path.join(runtimeDir, d, 'flight_result.json');
+                    if (fs.existsSync(candidate)) {
+                        flightResult = JSON.parse(fs.readFileSync(candidate, 'utf-8'));
+                        break;
+                    }
+                }
+            } catch (e) {}
+
+            res.writeHead(200, {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            });
+            return res.end(JSON.stringify({
+                manifest,
+                scenario,
+                geometry,
+                flightResult
+            }));
+        } catch (e) {
+            res.writeHead(500, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+            return res.end(JSON.stringify({ error: e.message }));
+        }
     }
 
     // Serve static files

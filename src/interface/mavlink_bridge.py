@@ -1,12 +1,12 @@
 """
 mavlink_bridge.py
-20 Hz MAVLink Telemetry & Setpoint Bridge for ArduPilot / PX4 SITL.
+20 Hz MAVLink Setpoint Bridge for ArduPilot SITL.
 
 Per the autonomy architecture in Datasets/autonomous_navigation_system_audit_and_plan.md:
 - Operates as a companion computer process.
 - Emits accepted 20 Hz MAVLink setpoints (SET_POSITION_TARGET_LOCAL_NED) over local UDP.
-- Default target: 127.0.0.1:14550 (Standard ArduPilot / PX4 SITL companion port).
-- Emits 1 Hz HEARTBEAT (MAV_TYPE_ONBOARD_CONTROLLER) to maintain autopilot Offboard mode.
+- Default target: 127.0.0.1:14550 (configured local ArduPilot SITL endpoint).
+- Emits 1 Hz HEARTBEAT (MAV_TYPE_ONBOARD_CONTROLLER).
 - Strictly gated by the DeterministicSafetySupervisor.
 """
 
@@ -57,6 +57,7 @@ class MAVLinkSITLBridge:
         self.actual_rate_hz: float = rate_hz
         self.last_approved_setpoint: Optional[CandidateSetpoint] = None
         self.last_decision: Optional[SupervisorDecision] = None
+        self.last_error: Optional[str] = None
         
         # Active candidate setpoint provider
         self.current_candidate: Optional[CandidateSetpoint] = None
@@ -78,9 +79,10 @@ class MAVLinkSITLBridge:
                 source_system=self.system_id,
                 source_component=self.component_id
             )
+            self.last_error = None
             return True
         except Exception as e:
-            # Fallback to direct socket if pymavlink has port binding issues
+            self.last_error = str(e)
             return False
 
     def update_flight_plan(
@@ -98,10 +100,12 @@ class MAVLinkSITLBridge:
         """Start the 20 Hz transmission thread."""
         if self._running:
             return
-        self.initialize_connection()
+        if not self.initialize_connection():
+            return False
         self._running = True
         self._thread = threading.Thread(target=self._broadcast_loop, daemon=True)
         self._thread.start()
+        return True
 
     def stop(self):
         """Stop transmission thread."""
@@ -120,18 +124,7 @@ class MAVLinkSITLBridge:
         frame_counter = 0
         t_start_period = time.perf_counter()
         
-        # Default hovering setpoint if no candidate provided
-        default_setpoint = CandidateSetpoint(
-            timestamp=time.time(),
-            x=0.0, y=0.0, z=-25.0,
-            vx=0.0, vy=0.0, vz=0.0,
-            yaw=0.0,
-            source_model="default_hover"
-        )
-        # State tracking for kinodynamic smoothing
-        curr_x = 0.0
-        curr_y = 0.0
-        curr_z = -25.0
+        # Velocity tracking for acceleration-limited command shaping.
         curr_vx = 0.0
         curr_vy = 0.0
         curr_vz = 0.0
@@ -151,13 +144,17 @@ class MAVLinkSITLBridge:
 
             # 2. Retrieve latest target setpoint from planner
             with self._lock:
-                cand = self.current_candidate or default_setpoint
-                target_vx = cand.vx
-                target_vy = cand.vy
-                target_vz = cand.vz
-                target_yaw = cand.yaw
-                target_z = cand.z
+                cand = self.current_candidate
                 obs = list(self.current_obstacles)
+            # No planner command means heartbeat-only operation. Never invent a position target.
+            if cand is None:
+                computation_time = time.perf_counter() - loop_start
+                time.sleep(max(0.001, self.period_s - computation_time))
+                continue
+            target_vx = cand.vx
+            target_vy = cand.vy
+            target_vz = cand.vz
+            target_yaw = cand.yaw
 
             # 3. Kinodynamic acceleration rate-limiter (a_max = 3.5 m/s^2 < 4.0 m/s^2 supervisor limit)
             max_dv = 3.5 * dt
@@ -169,20 +166,14 @@ class MAVLinkSITLBridge:
             curr_vy += dv_y
             curr_vz += dv_z
 
-            curr_x += curr_vx * dt
-            curr_y += curr_vy * dt
-            curr_z += curr_vz * dt
             curr_yaw = target_yaw
 
-            # Wrap position within bounding area if long-running
-            if abs(curr_x) > 450: curr_x = 450.0 if curr_x > 0 else -450.0
-            if abs(curr_y) > 450: curr_y = 450.0 if curr_y > 0 else -450.0
-
             smooth_candidate = CandidateSetpoint(
-                timestamp=now,
-                x=curr_x,
-                y=curr_y,
-                z=curr_z,
+                # Preserve producer time so the freshness gate can reject a stale planner.
+                timestamp=cand.timestamp,
+                x=cand.x,
+                y=cand.y,
+                z=cand.z,
                 vx=curr_vx,
                 vy=curr_vy,
                 vz=curr_vz,
@@ -247,11 +238,9 @@ class MAVLinkSITLBridge:
         try:
             time_boot_ms = int((now % 100000) * 1000)
             
-            # Type mask: Control Position, Velocity and Yaw (ignore accel & yaw_rate)
+            # Control position, velocity and yaw; ignore acceleration and yaw rate.
             # Bits: 0:pos_x, 1:pos_y, 2:pos_z, 3:vx, 4:vy, 5:vz, 6:ax, 7:ay, 8:az, 9:force, 10:yaw, 11:yaw_rate
-            # 0b0000100001110000 -> ignore accel (bits 6,7,8) and yaw_rate (bit 11)
-            # Hex: 0x0870
-            type_mask = 0b0000100001110000
+            type_mask = 0x09C0
 
             self.connection.mav.set_position_target_local_ned_send(
                 time_boot_ms=time_boot_ms,
@@ -292,6 +281,7 @@ class MAVLinkSITLBridge:
 
         return {
             "bridge_connected": self._running,
+            "connection_error": self.last_error,
             "target_endpoint": f"udp://{self.target_ip}:{self.target_port}",
             "stream_rate_hz": self.actual_rate_hz,
             "target_rate_hz": self.rate_hz,
@@ -303,7 +293,7 @@ class MAVLinkSITLBridge:
             "last_approved_setpoint": setpoint_data,
             "last_decision": {
                 "accepted": self.last_decision.accepted if self.last_decision else True,
-                "state": self.last_decision.state if self.last_decision else "OFFBOARD_ACTIVE",
+                "state": self.last_decision.state if self.last_decision else "GUIDED_ACTIVE",
                 "rejection_reason": self.last_decision.rejection_reason if self.last_decision else None
             } if self.last_decision else None
         }

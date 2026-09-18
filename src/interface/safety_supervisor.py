@@ -7,12 +7,12 @@ Learned models may propose observations and candidate setpoints, but may NEVER
 directly command motors or bypass safety checks.
 
 This supervisor executes independent, deterministic checks before each setpoint
-is approved for transmission to PX4 / ArduPilot via MAVLink:
+is approved for transmission to ArduPilot SITL via MAVLink:
 1. Geofence Boundary Check (Local NED coordinate bounds)
 2. Kinodynamic Constraints (Velocity, Acceleration, Climb Rate, Jerk ceilings)
 3. Dynamic Clearance Check (Minimum 3D separation to detected obstacles)
 4. Freshness Gate (Rejection of stale commands > 50 ms)
-5. Proof-of-life Heartbeat & Failsafe State Machine (OFFBOARD -> BRAKE -> HOLD -> LAND)
+5. Proof-of-life Heartbeat & Failsafe State Machine (GUIDED -> BRAKE -> HOLD -> LAND)
 """
 
 import time
@@ -39,6 +39,7 @@ class SupervisorLimits:
     
     # Collision avoidance buffer
     min_clearance_m: float = 15.0        # Minimum safe distance to obstacles
+    static_clearance_m: float = 6.0      # Building/restricted-boundary horizontal margin
     
     # Timing & age
     max_command_age_s: float = 0.050     # 50 ms max staleness
@@ -46,7 +47,7 @@ class SupervisorLimits:
 
 @dataclass
 class CandidateSetpoint:
-    timestamp: float                     # Monotonic Unix epoch in seconds
+    timestamp: float                     # Producer wall-clock Unix epoch in seconds
     x: float = 0.0                       # North (meters)
     y: float = 0.0                       # East (meters)
     z: float = -25.0                     # Down (meters, negative is up)
@@ -63,7 +64,7 @@ class CandidateSetpoint:
 @dataclass
 class SupervisorDecision:
     accepted: bool
-    state: str                           # 'OFFBOARD_ACTIVE', 'FAILSAFE_BRAKE', 'FAILSAFE_HOLD', 'EMERGENCY_LAND'
+    state: str                           # 'GUIDED_ACTIVE', 'FAILSAFE_BRAKE', 'FAILSAFE_HOLD', 'EMERGENCY_LAND'
     approved_setpoint: CandidateSetpoint
     rejection_reason: Optional[str] = None
     diagnostics: Dict[str, Any] = field(default_factory=dict)
@@ -74,11 +75,12 @@ class DeterministicSafetySupervisor:
     Independent non-learned safety barrier enforcing physical and operational constraints.
     """
 
-    def __init__(self, limits: Optional[SupervisorLimits] = None):
+    def __init__(self, limits: Optional[SupervisorLimits] = None, static_world: Optional[Any] = None):
         self.limits = limits or SupervisorLimits()
+        self.static_world = static_world
         
         # State machine
-        self.state = "OFFBOARD_ACTIVE"
+        self.state = "GUIDED_ACTIVE"
         self.last_accepted_setpoint: Optional[CandidateSetpoint] = None
         self.last_accepted_time: float = time.time()
         self.consecutive_rejections: int = 0
@@ -93,12 +95,13 @@ class DeterministicSafetySupervisor:
             "CLIMB_RATE_EXCEEDED": 0,
             "ACCEL_EXCEEDED": 0,
             "CLEARANCE_VIOLATION": 0,
+            "STATIC_WORLD_VIOLATION": 0,
             "STALE_COMMAND": 0,
         }
 
     def reset_failsafe(self):
         """Reset supervisor to active state."""
-        self.state = "OFFBOARD_ACTIVE"
+        self.state = "GUIDED_ACTIVE"
         self.consecutive_rejections = 0
 
     def evaluate_setpoint(
@@ -147,6 +150,30 @@ class DeterministicSafetySupervisor:
                 candidate,
                 f"Altitude Z {candidate.z:.1f}m outside operating band [{self.limits.z_min_m}, {self.limits.z_max_m}]"
             )
+
+        # Static world check: mapped buildings, map bounds and configured restricted areas.
+        if self.static_world is not None:
+            violation = self.static_world.violation(
+                candidate.x, candidate.y, candidate.z,
+                horizontal_clearance_m=self.limits.static_clearance_m
+            )
+            if violation:
+                return self._reject(
+                    "STATIC_WORLD_VIOLATION", candidate,
+                    f"Candidate intersects {violation}"
+                )
+            if self.last_accepted_setpoint is not None:
+                previous = self.last_accepted_setpoint
+                violation = self.static_world.segment_violation(
+                    (previous.x, previous.y, previous.z),
+                    (candidate.x, candidate.y, candidate.z),
+                    horizontal_clearance_m=self.limits.static_clearance_m
+                )
+                if violation:
+                    return self._reject(
+                        "STATIC_WORLD_VIOLATION", candidate,
+                        f"Command segment intersects {violation}"
+                    )
 
         # 3. Velocity constraint check
         v_horiz = math.hypot(candidate.vx, candidate.vy)
@@ -197,7 +224,7 @@ class DeterministicSafetySupervisor:
 
         # --- All Safety Checks Passed ---
         self.consecutive_rejections = 0
-        self.state = "OFFBOARD_ACTIVE"
+        self.state = "GUIDED_ACTIVE"
         self.total_accepted += 1
         self.last_accepted_setpoint = candidate
         self.last_accepted_time = now
@@ -275,6 +302,7 @@ class DeterministicSafetySupervisor:
         )
         return {
             "status": "ENFORCED",
+            "static_world_loaded": self.static_world is not None,
             "state": self.state,
             "total_evaluated": self.total_evaluated,
             "total_accepted": self.total_accepted,
@@ -287,6 +315,7 @@ class DeterministicSafetySupervisor:
                 "max_accel_mps2": self.limits.max_accel_mps2,
                 "max_climb_mps": self.limits.max_climb_mps,
                 "min_clearance_m": self.limits.min_clearance_m,
+                "static_clearance_m": self.limits.static_clearance_m,
                 "geofence_horizontal_m": self.limits.x_max_m,
                 "geofence_ceiling_m": abs(self.limits.z_min_m)
             }
