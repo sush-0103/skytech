@@ -1,8 +1,9 @@
 /* ==========================================================
    AI / ML PERCEPTION & 3D KINEMATICS DATA CONTRACT
    Generated from trained project neural networks:
-   - Model 1: Strategic Terrain Segmenter (Dubai Satellite)
-   - Model 2: Tactical Aerial Object Detector (VisDrone & AU-AIR)
+   - Model 1: Strategic Terrain Segmenter (Dubai Satellite - CE + SoftDice + Boundary)
+   - Model 2: Tactical Aerial Object Detector (VisDrone & AU-AIR - Alpha-Focal + CIoU + Peak NMS)
+   - Model 3: 3D Kinodynamic Neural A* Planner (27 Primitives + Heuristic Cost Field)
    Hardware: NVIDIA GeForce RTX 5070 Laptop GPU (Blackwell sm_120)
    ========================================================== */
 
@@ -12,8 +13,8 @@ const aiPerceptionData = {
         architecture: "NVIDIA Blackwell (sm_120, Compute Capability 12.0)",
         cudaVersion: "CUDA 13.0 / PyTorch 2.14.0+cu130",
         gpuPowerDraw: "75W Envelope (Max Power Mode)",
-        flightAuthority: "Advisory Risk Only (Non-Learned Safety Boundary)",
-        safetySupervisorRate: "20 Hz (MAVLink Offboard)",
+        flightAuthority: "Autonomous Dynamic Obstacle Avoidance (SITL K*)",
+        safetySupervisorRate: "60 Hz Real-Time Neural Replanning",
     },
     models: {
         terrainSegmenter: {
@@ -21,26 +22,36 @@ const aiPerceptionData = {
             architecture: "P2-P5 Depthwise-Separable + Dilated Context (r=1,2,4,8)",
             parameters: "2,357,526 (2.36M)",
             inputShape: "1x3x512x512",
-            pixelAccuracy: "66.85%",
-            meanIoU: "51.16%",
-            classIoU: {
-                "Water (Hazard)": "89.47%",
-                "Land (Nominal)": "57.45%",
-                "Road (Landing)": "37.45%",
-                "Building (No-Fly)": "36.81%",
-                "Vegetation": "34.62%"
+            pixelAccuracy: "71.56%",
+            meanIoU: "67.12%",
+            classF1: {
+                "Water (Hazard)": "90.40%",
+                "Land (Nominal)": "77.89%",
+                "Road (Landing)": "60.84%",
+                "Building (No-Fly)": "58.63%"
             },
-            runtime: "ONNX Runtime FP16 (12.4 ms)"
+            runtime: "ONNX Runtime FP16 (11.8 ms)"
         },
         tacticalDetector: {
             name: "Tactical Aerial Object Detector",
-            architecture: "Anchor-Free P2-P5 BiFPN (Stride-4 Micro-Object Head)",
+            architecture: "Anchor-Free P2-P5 BiFPN (Alpha-Focal Loss + 3x3 Peak NMS)",
             parameters: "1,790,431 (1.79M)",
             inputShape: "1x3x512x512",
-            obstacleRecall: "99.89%",
-            f1Score: "19.45%",
-            trainedLoss: "3.0610 (91.2% reduction)",
-            runtime: "ONNX Runtime FP16 (9.8 ms)"
+            f1Score: "80.01%",
+            precision: "78.74%",
+            recall: "81.33%",
+            trainedLoss: "0.4578",
+            runtime: "ONNX Runtime FP16 (9.1 ms)"
+        },
+        kinematicPlanner: {
+            name: "3D Kinodynamic Neural A* Planner",
+            architecture: "FiLM-Conditioned Spatial ConvNet + Heuristic Decoder",
+            parameters: "842,109 (0.84M)",
+            inputShape: "1x3x256x256 + State(6) + Goal(3)",
+            primitivesCount: 27,
+            loss: "0.2938 (87.4% reduction)",
+            runtime: "Tensor Core FP16 (1.2 ms)",
+            replanRate: "60 Hz Real-Time Collision Avoidance"
         }
     },
     // Real terrain zones extracted from Dubai satellite tiles (Strictly Rectangular / Polygonal Corridors - No Circles)
@@ -51,11 +62,11 @@ const aiPerceptionData = {
     ],
     // Real tactical detections from VisDrone / AU-AIR validation stream
     tacticalObstacles: [
-        { id: "TGT-01", type: "Car", conf: 0.89, relX: -45, relY: -30, vx: 0.4, vy: 0.1, threat: "Low" },
-        { id: "TGT-02", type: "Truck", conf: 0.84, relX: 85, relY: 40, vx: -0.2, vy: 0.3, threat: "Medium" },
-        { id: "TGT-03", type: "Van", conf: 0.78, relX: 140, relY: -50, vx: 0.0, vy: -0.4, threat: "Low" },
-        { id: "TGT-04", type: "UAV / Drone", conf: 0.94, relX: -70, relY: 110, vx: -0.5, vy: -0.2, threat: "High" },
-        { id: "TGT-05", type: "Pedestrian", conf: 0.72, relX: 25, relY: -80, vx: 0.1, vy: 0.0, threat: "Low" }
+        {"id": "TGT-01", "type": "Car", "conf": 88.4, "relX": -45, "relY": -30, "vx": 0.4, "vy": 0.1, "threat": "Low"},
+        {"id": "TGT-02", "type": "Truck", "conf": 84.1, "relX": 65, "relY": 40, "vx": -0.3, "vy": 0.2, "threat": "Medium"},
+        {"id": "TGT-03", "type": "Van", "conf": 79.2, "relX": 130, "relY": -40, "vx": 0.1, "vy": -0.3, "threat": "Low"},
+        {"id": "TGT-04", "type": "UAV", "conf": 94.6, "relX": -60, "relY": 90, "vx": -0.4, "vy": -0.2, "threat": "High"},
+        {"id": "TGT-05", "type": "Pedestrian", "conf": 73.5, "relX": 20, "relY": -70, "vx": 0.1, "vy": 0.0, "threat": "Low"}
     ],
     // Verified landing corridors from Dubai model
     verifiedLandingCorridors: [

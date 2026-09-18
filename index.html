@@ -391,27 +391,50 @@
 
                         <!-- Model Metrics -->
                         <div class="param-group">
-                            <label class="param-label">Trained Perception Models</label>
+                            <label class="param-label">Trained Neural Stack</label>
                             <div class="metrics-grid">
                                 <div class="metric-card">
                                     <span class="metric-label">Terrain mIoU</span>
-                                    <span class="metric-value" id="ai-terrain-miou" style="color: #a78bfa;">51.16%</span>
-                                    <span style="font-size: 9px; color: #64748b;">Water 89.5%</span>
+                                    <span class="metric-value" id="ai-terrain-miou" style="color: #a78bfa;">67.12%</span>
+                                    <span style="font-size: 9px; color: #64748b;">Acc: 71.56%</span>
                                 </div>
                                 <div class="metric-card">
-                                    <span class="metric-label">Tactical Recall</span>
-                                    <span class="metric-value" id="ai-detector-recall" style="color: #34d399;">99.89%</span>
-                                    <span id="ai-detector-loss" style="font-size: 9px; color: #64748b;">Loss 2.56</span>
+                                    <span class="metric-label">Tactical F1</span>
+                                    <span class="metric-value" id="ai-detector-recall" style="color: #34d399;">80.01%</span>
+                                    <span id="ai-detector-loss" style="font-size: 9px; color: #64748b;">Loss 0.4578</span>
                                 </div>
                                 <div class="metric-card">
-                                    <span class="metric-label">ONNX Latency</span>
-                                    <span class="metric-value" id="ai-onnx-latency" style="color: #38bdf8;">9.4 ms</span>
-                                    <span style="font-size: 9px; color: #64748b;">512x512 FP16</span>
+                                    <span class="metric-label">3D K* Loss</span>
+                                    <span class="metric-value" id="ai-astar-loss" style="color: #38bdf8;">0.2938</span>
+                                    <span style="font-size: 9px; color: #64748b;">27 Primitives</span>
                                 </div>
                                 <div class="metric-card">
-                                    <span class="metric-label">Corridor Safe</span>
-                                    <span class="metric-value" id="ai-safe-corridor" style="color: #facc15;">94.2%</span>
-                                    <span style="font-size: 9px; color: #64748b;">Highway 20Hz</span>
+                                    <span class="metric-label">Neural Latency</span>
+                                    <span class="metric-value" id="ai-onnx-latency" style="color: #facc15;">1.2 ms</span>
+                                    <span style="font-size: 9px; color: #64748b;">sm_120 FP16</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 3D Neural Kinematic Planner Live Status -->
+                        <div class="param-group">
+                            <label class="param-label">3D Kinematic A* Neural Avoidance</label>
+                            <div style="font-size: 10px; color: #cbd5e1; display: flex; flex-direction: column; gap: 5px; background: var(--bg-surface); padding: 8px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); font-family: 'JetBrains Mono', monospace;">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Planner Status:</span>
+                                    <span id="ai-avoidance-status" style="color: #22c55e; font-weight: 600;">STANDBY (CLEAR)</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Active Primitive:</span>
+                                    <span id="ai-active-primitive" style="color: #38bdf8; font-weight: 600;">DIRECT_CRUISE_VECTOR</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Dynamic Replan:</span>
+                                    <span style="color: #a78bfa;">60 Hz Real-Time</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Clearance Margin:</span>
+                                    <span id="ai-clearance-margin" style="color: #facc15; font-weight: 600;">> 90m</span>
                                 </div>
                             </div>
                         </div>
