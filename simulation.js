@@ -437,16 +437,20 @@ function render(timestamp) {
     drawGrid();
     drawRangeRings();
     drawRadiusCircle();
-    drawTrafficDots(timestamp);
-    drawLandingZones();
 
-    // Update and draw drones
+    // Placeholder text for simulation area
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+    ctx.font = '14px Inter';
+    ctx.textAlign = 'center';
+    ctx.fillText('Simulation Area - Connect ML Model', w / 2, h / 2);
+    ctx.font = '11px Inter';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.04)';
+    ctx.fillText('Drone visualization will appear here', w / 2, h / 2 + 24);
+
+    // Update sim time
     if (state.simulation.running) {
-        updateDrones();
         state.simulation.time += dt * state.simulation.speed;
     }
-
-    state.drones.forEach(drone => drawDrone(drone, timestamp));
 
     // Update sim clock
     updateSimClock();
@@ -609,14 +613,9 @@ document.querySelectorAll('.traffic-btn').forEach(btn => {
         const fillPercent = (state.traffic.level / 5) * 100;
         document.getElementById('density-fill').style.width = fillPercent + '%';
 
-        // Update aircraft count
+        // Update traffic count in state
         const baseCount = state.traffic.level * 8 + Math.floor(Math.random() * 5);
         state.traffic.aircraftCount = baseCount;
-        document.getElementById('aircraft-count').textContent = baseCount;
-
-        // Update ring
-        const ringOffset = 220 - (220 * (fillPercent / 100));
-        document.getElementById('aircraft-ring').setAttribute('stroke-dashoffset', ringOffset);
     });
 });
 
@@ -788,20 +787,7 @@ function updateMetrics() {
     const gpuVar = Math.floor(Math.random() * 8);
     document.getElementById('gpu-usage').textContent = (gpuBase + gpuVar) + '%';
 
-    // HUD values
-    if (state.simulation.running) {
-        const alt = (100 + Math.sin(Date.now() * 0.001) * 30).toFixed(1);
-        const spd = (40 + Math.sin(Date.now() * 0.0008) * 10).toFixed(1);
-        const hdg = Math.floor(((Date.now() * 0.01) % 360));
 
-        document.getElementById('hud-altitude').textContent = alt + 'm';
-        document.getElementById('hud-speed').textContent = spd + ' km/h';
-        document.getElementById('hud-heading').textContent = hdg + '°';
-
-        // Compass needle
-        document.getElementById('compass-needle').style.transform =
-            `translate(-50%, 0) rotate(${hdg}deg)`;
-    }
 }
 
 // ─── Initialize ─────────────────────────

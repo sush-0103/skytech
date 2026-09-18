@@ -134,48 +134,7 @@
             </div>
             <div class="canvas-viewport" id="viewport">
                 <canvas id="sim-canvas"></canvas>
-                <!-- Overlay HUD -->
-                <div class="hud-overlay">
-                    <div class="hud-top-left">
-                        <div class="hud-item">
-                            <span class="hud-label">ALT</span>
-                            <span class="hud-value" id="hud-altitude">120.0m</span>
-                        </div>
-                        <div class="hud-item">
-                            <span class="hud-label">SPD</span>
-                            <span class="hud-value" id="hud-speed">45.2 km/h</span>
-                        </div>
-                        <div class="hud-item">
-                            <span class="hud-label">HDG</span>
-                            <span class="hud-value" id="hud-heading">278°</span>
-                        </div>
-                    </div>
-                    <div class="hud-top-right">
-                        <div class="hud-item">
-                            <span class="hud-label">LAT</span>
-                            <span class="hud-value" id="hud-lat">25.2048°N</span>
-                        </div>
-                        <div class="hud-item">
-                            <span class="hud-label">LON</span>
-                            <span class="hud-value" id="hud-lon">55.2708°E</span>
-                        </div>
-                        <div class="hud-item">
-                            <span class="hud-label">DRONES</span>
-                            <span class="hud-value" id="hud-drones">4</span>
-                        </div>
-                    </div>
-                    <div class="hud-bottom-center">
-                        <div class="compass">
-                            <div class="compass-ring">
-                                <span class="compass-dir" style="--angle: 0deg">N</span>
-                                <span class="compass-dir" style="--angle: 90deg">E</span>
-                                <span class="compass-dir" style="--angle: 180deg">S</span>
-                                <span class="compass-dir" style="--angle: 270deg">W</span>
-                            </div>
-                            <div class="compass-needle" id="compass-needle"></div>
-                        </div>
-                    </div>
-                </div>
+
                 <!-- Coordinate Bar -->
                 <div class="coord-bar">
                     <span>X: <span id="coord-x">0.000</span></span>
@@ -241,43 +200,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="param-group">
-                            <label class="param-label">Active Aircraft in Zone</label>
-                            <div class="aircraft-count-display">
-                                <div class="count-ring">
-                                    <svg viewBox="0 0 80 80">
-                                        <circle cx="40" cy="40" r="35" stroke="#1e293b" stroke-width="5" fill="none"/>
-                                        <circle cx="40" cy="40" r="35" stroke="url(#trafficGrad)" stroke-width="5" fill="none"
-                                            stroke-dasharray="220" stroke-dashoffset="110" stroke-linecap="round"
-                                            id="aircraft-ring"/>
-                                        <defs>
-                                            <linearGradient id="trafficGrad" x1="0" y1="0" x2="1" y2="1">
-                                                <stop stop-color="#00f0ff"/>
-                                                <stop offset="1" stop-color="#7b61ff"/>
-                                            </linearGradient>
-                                        </defs>
-                                    </svg>
-                                    <span class="count-number" id="aircraft-count">24</span>
-                                </div>
-                                <div class="count-details">
-                                    <div class="count-detail-row">
-                                        <span class="dot" style="background:#00f0ff"></span>
-                                        <span>Commercial UAVs</span>
-                                        <span class="count-val">12</span>
-                                    </div>
-                                    <div class="count-detail-row">
-                                        <span class="dot" style="background:#7b61ff"></span>
-                                        <span>Delivery Drones</span>
-                                        <span class="count-val">8</span>
-                                    </div>
-                                    <div class="count-detail-row">
-                                        <span class="dot" style="background:#ff6b6b"></span>
-                                        <span>Other Traffic</span>
-                                        <span class="count-val">4</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+
                     </div>
                 </section>
 
