@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UAV AeroDiagnostics | 3D Thermal Heatmap & Fault Simulation</title>
+  <meta name="description" content="Precision 3D UAV Thermal Heatmap Simulation. Diagnose drone component overheating, motor bearing friction, battery thermal runaway, and electronic faults on a premium studio white background.">
+  
+  <!-- Modern Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="styles.css">
+
+  <!-- Importmap for native ES Modules from local node_modules -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "/node_modules/three/build/three.module.js",
+      "three/addons/": "/node_modules/three/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <!-- Main 3D Canvas Viewport -->
+  <div id="viewport-container">
+    <canvas id="webgl-canvas"></canvas>
+    
+    <!-- 3D Pinned Floating Badges Container -->
+    <div id="badges-overlay"></div>
+
+    <!-- Center Crosshair & Viewport Watermark -->
+    <div class="viewport-hud-elements">
+      <div class="viewport-reticle"></div>
+      <div class="viewport-meta">
+        <span class="meta-item"><span class="meta-dot"></span> SKY-X4 QUADROTOR PLATFORM</span>
+        <span class="meta-divider">|</span>
+        <span class="meta-item">OPTICAL & THERMAL MULTISPECTRAL SENSING</span>
+      </div>
+    </div>
+
+    <!-- Loading Screen / Progress -->
+    <div id="loading-screen">
+      <div class="loader-content">
+        <div class="loader-ring"></div>
+        <div class="loader-title">INITIALIZING 3D AEROSPACE ENVIRONMENT</div>
+        <div class="loader-status" id="loader-status-text">Loading UAV telemetry & 3D mesh components...</div>
+        <div class="loader-bar-bg">
+          <div class="loader-bar-fill" id="loader-progress"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main User Interface Grid -->
+  <div id="app-container">
+    
+    <!-- Top Navigation & Global Status Header -->
+    <header id="top-header" class="glass-panel">
+      <div class="header-left">
+        <div class="brand-badge">
+          <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+            <polyline points="2 17 12 22 22 17"></polyline>
+            <polyline points="2 12 12 17 22 12"></polyline>
+          </svg>
+          <span class="brand-title">AERO<span class="brand-accent">DIAGNOSTICS</span></span>
+          <span class="version-tag">PRO v2.4</span>
+        </div>
+        <div class="header-divider"></div>
+        <div class="system-status-indicator" id="global-status-badge">
+          <span class="status-pulse-dot" id="status-dot"></span>
+          <span class="status-text" id="status-text">SYSTEM NOMINAL</span>
+        </div>
+      </div>
+
+      <!-- Quick Metrics Ribbon -->
+      <div class="header-center">
+        <div class="telemetry-pill">
+          <span class="pill-label">PEAK TEMP</span>
+          <span class="pill-value" id="hdr-peak-temp">32.4°C</span>
+        </div>
+        <div class="telemetry-pill">
+          <span class="pill-label">HOTTEST NODE</span>
+          <span class="pill-value" id="hdr-hottest-node">M1 Motor</span>
+        </div>
+        <div class="telemetry-pill">
+          <span class="pill-label">ACTIVE FAULTS</span>
+          <span class="pill-value alert-zero" id="hdr-faults-count">0</span>
+        </div>
+        <div class="telemetry-pill">
+          <span class="pill-label">THROTTLE</span>
+          <span class="pill-value" id="hdr-throttle">HOVER (60%)</span>
+        </div>
+      </div>
+
+      <!-- Header Right Controls -->
+      <div class="header-right">
+        <!-- Camera View Presets -->
+        <div class="view-presets-group">
+          <button class="view-btn active" data-view="isometric" title="Isometric Studio 3D">ISO</button>
+          <button class="view-btn" data-view="top" title="Top-Down 2D Schematic">TOP</button>
+          <button class="view-btn" data-view="front" title="Front Elevation">FRONT</button>
+          <button class="view-btn" data-view="battery" title="Focus Battery Bay">BATT</button>
+          <button class="view-btn" data-view="reset" title="Reset Camera">RESET</button>
+        </div>
+
+        <button id="toggle-badges-btn" class="icon-toggle-btn active" title="Toggle 3D Component Labels">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <span>TAGS</span>
+        </button>
+
+        <button id="export-report-btn" class="export-btn" title="Generate Diagnostics Telemetry Report">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span>EXPORT LOG</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace Content (Left & Right Drawers) -->
+    <div id="main-content-layout">
+
+      <!-- LEFT SIDEBAR: Fault Simulation & Thermal Injection Controls -->
+      <aside id="left-sidebar" class="glass-panel sidebar-drawer">
+        <div class="sidebar-header">
+          <div class="section-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
+            </svg>
+            THERMAL FAULT SIMULATION
+          </div>
+          <span class="sidebar-badge">PRESETS</span>
+        </div>
+
+        <div class="sidebar-scrollable">
+          <!-- Fault Scenarios List -->
+          <div class="control-group">
+            <label class="group-label">FAULT SCENARIOS & STRESS TESTS</label>
+            <div class="scenario-buttons-grid">
+              <button class="scenario-btn active" data-scenario="nominal">
+                <div class="sc-indicator green"></div>
+                <div class="sc-info">
+                  <div class="sc-title">All Systems Nominal</div>
+                  <div class="sc-desc">Light gray chassis, optimal ambient cooling (28°C-34°C)</div>
+                </div>
+              </button>
+
+              <button class="scenario-btn" data-scenario="m1_friction">
+                <div class="sc-indicator amber"></div>
+                <div class="sc-info">
+                  <div class="sc-title">Motor 1 Bearing Friction & Overheat</div>
+                  <div class="sc-desc">Front-Right motor bearing wear (88°C), RPM drop 18%</div>
+                </div>
+              </button>
+
+              <button class="scenario-btn" data-scenario="m3_mosfet">
+                <div class="sc-indicator red"></div>
+                <div class="sc-info">
+                  <div class="sc-title">Motor 3 ESC Mosfet Breakdown</div>
+                  <div class="sc-desc">Rear-Left ESC short circuit, critical thermal spike (96°C)</div>
+                </div>
+              </button>
+
+              <button class="scenario-btn" data-scenario="battery_runaway">
+                <div class="sc-indicator red"></div>
+                <div class="sc-info">
+                  <div class="sc-title">LiPo Battery Core Thermal Runaway</div>
+                  <div class="sc-desc">Internal dendritic short, core temp surge (82°C)</div>
+                </div>
+              </button>
+
+              <button class="scenario-btn" data-scenario="fc_throttle">
+                <div class="sc-indicator amber"></div>
+                <div class="sc-info">
+                  <div class="sc-title">Flight Controller MCU Overload</div>
+                  <div class="sc-desc">Avionics & receiver board thermal throttling (74°C)</div>
+                </div>
+              </button>
+
+              <button class="scenario-btn" data-scenario="gimbal_heat">
+                <div class="sc-indicator amber"></div>
+                <div class="sc-info">
+                  <div class="sc-title">4K Gimbal Camera Core Overheat</div>
+                  <div class="sc-desc">Continuous high-bitrate encoding thermal build-up (69°C)</div>
+                </div>
+              </button>
+
+              <button class="scenario-btn" data-scenario="max_thrust">
+                <div class="sc-indicator orange"></div>
+                <div class="sc-info">
+                  <div class="sc-title">Sustained Max Thrust (All Rotors)</div>
+                  <div class="sc-desc">Full 100% throttle load across all 4 motor coils (67°C)</div>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Exploded Assembly Separation Slider -->
+          <div class="control-group">
+            <div class="slider-header">
+              <label class="group-label">EXPLODED ASSEMBLY VIEW</label>
+              <span class="slider-val" id="val-exploded">0% (Assembled)</span>
+            </div>
+            <input type="range" id="slider-exploded" min="0" max="100" value="0" class="custom-range">
+            <div class="range-subtext">Separates upper canopy, battery bay, and motor struts to inspect internal faults</div>
+          </div>
+
+          <!-- Rotor Dynamics Control -->
+          <div class="control-group">
+            <div class="slider-header">
+              <label class="group-label">ROTOR VELOCITY / THROTTLE</label>
+              <span class="slider-val" id="val-throttle">4,800 RPM</span>
+            </div>
+            <div class="throttle-button-row">
+              <button class="throttle-btn" data-rpm="0">STOP</button>
+              <button class="throttle-btn" data-rpm="2200">IDLE</button>
+              <button class="throttle-btn active" data-rpm="4800">HOVER</button>
+              <button class="throttle-btn" data-rpm="8200">MAX</button>
+            </div>
+          </div>
+
+          <!-- Manual Component Heat Injection Sliders -->
+          <div class="control-group">
+            <div class="flex-header">
+              <label class="group-label">MANUAL THERMAL INJECTION</label>
+              <button id="btn-cool-all" class="text-action-btn">RESET ALL TO 28°C</button>
+            </div>
+
+            <div class="injection-sliders-container">
+              <!-- M1 -->
+              <div class="inject-row">
+                <div class="inject-label">
+                  <span class="node-id">M1</span> Front-Right Motor
+                  <span class="inject-temp" id="val-m1">31°C</span>
+                </div>
+                <input type="range" class="temp-slider" data-target="m1" min="20" max="110" value="31">
+              </div>
+
+              <!-- M2 -->
+              <div class="inject-row">
+                <div class="inject-label">
+                  <span class="node-id">M2</span> Rear-Left Motor
+                  <span class="inject-temp" id="val-m2">32°C</span>
+                </div>
+                <input type="range" class="temp-slider" data-target="m2" min="20" max="110" value="32">
+              </div>
+
+              <!-- M3 -->
+              <div class="inject-row">
+                <div class="inject-label">
+                  <span class="node-id">M3</span> Front-Left Motor
+                  <span class="inject-temp" id="val-m3">30°C</span>
+                </div>
+                <input type="range" class="temp-slider" data-target="m3" min="20" max="110" value="30">
+              </div>
+
+              <!-- M4 -->
+              <div class="inject-row">
+                <div class="inject-label">
+                  <span class="node-id">M4</span> Rear-Right Motor
+                  <span class="inject-temp" id="val-m4">31°C</span>
+                </div>
+                <input type="range" class="temp-slider" data-target="m4" min="20" max="110" value="31">
+              </div>
+
+              <!-- Battery -->
+              <div class="inject-row">
+                <div class="inject-label">
+                  <span class="node-id">BAT</span> 6S LiPo Pack
+                  <span class="inject-temp" id="val-battery">33°C</span>
+                </div>
+                <input type="range" class="temp-slider" data-target="battery" min="20" max="110" value="33">
+              </div>
+
+              <!-- Flight Controller -->
+              <div class="inject-row">
+                <div class="inject-label">
+                  <span class="node-id">FC</span> Main Avionics MCU
+                  <span class="inject-temp" id="val-fc">35°C</span>
+                </div>
+                <input type="range" class="temp-slider" data-target="fc" min="20" max="110" value="35">
+              </div>
+
+              <!-- Camera Gimbal -->
+              <div class="inject-row">
+                <div class="inject-label">
+                  <span class="node-id">CAM</span> 4K Sensor Gimbal
+                  <span class="inject-temp" id="val-camera">34°C</span>
+                </div>
+                <input type="range" class="temp-slider" data-target="camera" min="20" max="110" value="34">
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- RIGHT SIDEBAR: Telemetry, Component Health, & Live Thermal History -->
+      <aside id="right-sidebar" class="glass-panel sidebar-drawer">
+        <div class="sidebar-header">
+          <div class="section-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+            </svg>
+            LIVE COMPONENT TELEMETRY
+          </div>
+          <span class="live-tag">REALTIME</span>
+        </div>
+
+        <div class="sidebar-scrollable">
+          <!-- Real-Time Rolling Thermal History Chart -->
+          <div class="control-group">
+            <div class="chart-header">
+              <label class="group-label">THERMAL TREND (60s HISTORY)</label>
+              <span class="chart-legend-wrap">
+                <span class="legend-chip c-m1">M1</span>
+                <span class="legend-chip c-m3">M3</span>
+                <span class="legend-chip c-bat">BAT</span>
+                <span class="legend-chip c-fc">FC</span>
+              </span>
+            </div>
+            <div class="chart-canvas-container">
+              <canvas id="telemetry-sparkline" width="320" height="110"></canvas>
+            </div>
+          </div>
+
+          <!-- Component Diagnostics Grid -->
+          <div class="control-group">
+            <label class="group-label">CRITICAL SUBSYSTEMS HEALTH</label>
+            <div class="subsystems-grid">
+
+              <!-- M1 Card -->
+              <div class="subsystem-card" id="card-m1" data-comp="m1">
+                <div class="card-top">
+                  <span class="comp-tag">M1 MOTOR</span>
+                  <span class="comp-badge badge-normal" id="badge-m1">OPTIMAL</span>
+                </div>
+                <div class="card-mid">
+                  <div class="comp-temp" id="temp-display-m1">31.2°C</div>
+                  <div class="comp-metric"><span id="rpm-m1">4,820</span> RPM</div>
+                </div>
+                <div class="temp-progress-track">
+                  <div class="temp-progress-bar" id="bar-m1" style="width: 25%;"></div>
+                </div>
+              </div>
+
+              <!-- M2 Card -->
+              <div class="subsystem-card" id="card-m2" data-comp="m2">
+                <div class="card-top">
+                  <span class="comp-tag">M2 MOTOR</span>
+                  <span class="comp-badge badge-normal" id="badge-m2">OPTIMAL</span>
+                </div>
+                <div class="card-mid">
+                  <div class="comp-temp" id="temp-display-m2">32.0°C</div>
+                  <div class="comp-metric"><span id="rpm-m2">4,810</span> RPM</div>
+                </div>
+                <div class="temp-progress-track">
+                  <div class="temp-progress-bar" id="bar-m2" style="width: 26%;"></div>
+                </div>
+              </div>
+
+              <!-- M3 Card -->
+              <div class="subsystem-card" id="card-m3" data-comp="m3">
+                <div class="card-top">
+                  <span class="comp-tag">M3 MOTOR</span>
+                  <span class="comp-badge badge-normal" id="badge-m3">OPTIMAL</span>
+                </div>
+                <div class="card-mid">
+                  <div class="comp-temp" id="temp-display-m3">30.8°C</div>
+                  <div class="comp-metric"><span id="rpm-m3">4,815</span> RPM</div>
+                </div>
+                <div class="temp-progress-track">
+                  <div class="temp-progress-bar" id="bar-m3" style="width: 24%;"></div>
+                </div>
+              </div>
+
+              <!-- M4 Card -->
+              <div class="subsystem-card" id="card-m4" data-comp="m4">
+                <div class="card-top">
+                  <span class="comp-tag">M4 MOTOR</span>
+                  <span class="comp-badge badge-normal" id="badge-m4">OPTIMAL</span>
+                </div>
+                <div class="card-mid">
+                  <div class="comp-temp" id="temp-display-m4">31.5°C</div>
+                  <div class="comp-metric"><span id="rpm-m4">4,822</span> RPM</div>
+                </div>
+                <div class="temp-progress-track">
+                  <div class="temp-progress-bar" id="bar-m4" style="width: 25%;"></div>
+                </div>
+              </div>
+
+              <!-- Battery Card -->
+              <div class="subsystem-card full-span" id="card-battery" data-comp="battery">
+                <div class="card-top">
+                  <span class="comp-tag">LIPO BATTERY CORE (6S 5000mAh)</span>
+                  <span class="comp-badge badge-normal" id="badge-battery">OPTIMAL</span>
+                </div>
+                <div class="card-mid">
+                  <div class="comp-temp" id="temp-display-battery">33.1°C</div>
+                  <div class="comp-metric">23.8V · 18.2A Draw</div>
+                </div>
+                <div class="temp-progress-track">
+                  <div class="temp-progress-bar" id="bar-battery" style="width: 28%;"></div>
+                </div>
+              </div>
+
+              <!-- Flight Controller Card -->
+              <div class="subsystem-card full-span" id="card-fc" data-comp="fc">
+                <div class="card-top">
+                  <span class="comp-tag">FLIGHT CONTROLLER & RECEIVER</span>
+                  <span class="comp-badge badge-normal" id="badge-fc">OPTIMAL</span>
+                </div>
+                <div class="card-mid">
+                  <div class="comp-temp" id="temp-display-fc">35.4°C</div>
+                  <div class="comp-metric">STM32 H743 · 480MHz</div>
+                </div>
+                <div class="temp-progress-track">
+                  <div class="temp-progress-bar" id="bar-fc" style="width: 30%;"></div>
+                </div>
+              </div>
+
+              <!-- Camera Card -->
+              <div class="subsystem-card full-span" id="card-camera" data-comp="camera">
+                <div class="card-top">
+                  <span class="comp-tag">4K GIMBAL OPTICAL PAYLOAD</span>
+                  <span class="comp-badge badge-normal" id="badge-camera">OPTIMAL</span>
+                </div>
+                <div class="card-mid">
+                  <div class="comp-temp" id="temp-display-camera">34.0°C</div>
+                  <div class="comp-metric">Sony Exmor · 60 FPS</div>
+                </div>
+                <div class="temp-progress-track">
+                  <div class="temp-progress-bar" id="bar-camera" style="width: 29%;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Diagnostics Event Stream -->
+          <div class="control-group">
+            <label class="group-label">SYSTEM EVENT STREAM</label>
+            <div class="event-stream" id="event-stream-container">
+              <div class="event-item">
+                <span class="event-time">00:00:01</span>
+                <span class="event-msg">Diagnostic simulation initialized. Base material: Studio Light Gray.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+    </div>
+
+    <!-- BOTTOM BAR: Heatmap Color Scale Legend & Palette Switcher -->
+    <footer id="bottom-bar" class="glass-panel">
+      <!-- Heatmap Palette Selector -->
+      <div class="palette-selector-group">
+        <span class="bar-label">PALETTE:</span>
+        <button class="palette-btn active" data-palette="flir" title="FLIR Ironbow Thermal Spectrum">FLIR Thermal</button>
+        <button class="palette-btn" data-palette="spectrum" title="Scientific Jet / Cold-to-Hot Spectrum">Jet Spectrum</button>
+        <button class="palette-btn" data-palette="alert" title="Monochrome Light Gray with Bright Glowing Alerts">Alert Glow</button>
+      </div>
+
+      <!-- Thermal Gradient Legend Bar -->
+      <div class="thermal-legend-container">
+        <div class="legend-scale-labels">
+          <span>20°C (Cold/Nominal)</span>
+          <span>40°C (Warm)</span>
+          <span>60°C (Elevated)</span>
+          <span>80°C (Overheat)</span>
+          <span>100°C+ (Critical Meltdown)</span>
+        </div>
+        <div class="legend-bar-wrapper">
+          <div class="thermal-gradient-bar" id="thermal-gradient-bar"></div>
+          <!-- Real-Time Cursor Indicator -->
+          <div class="legend-cursor" id="legend-cursor" style="left: 15%;">
+            <div class="cursor-pointer"></div>
+            <div class="cursor-label" id="cursor-label">32°C</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer Action & Sound Toggle -->
+      <div class="footer-actions">
+        <button id="sound-toggle-btn" class="icon-toggle-btn" title="Toggle Acoustic Thermal Alarms">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+          </svg>
+          <span id="sound-status-text">ALARM OFF</span>
+        </button>
+
+        <button id="camera-autorotate-btn" class="icon-toggle-btn active" title="Toggle Studio Turntable Rotation">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+          </svg>
+          <span>TURNTABLE</span>
+        </button>
+      </div>
+    </footer>
+
+    <!-- Component Detail Inspector Modal / Drawer (when clicking in 3D) -->
+    <div id="inspector-modal" class="glass-panel modal-hidden">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="modal-title" id="modal-comp-name">M1 FRONT-RIGHT MOTOR</span>
+          <span class="modal-status-badge" id="modal-comp-status">OPTIMAL</span>
+        </div>
+        <button id="close-modal-btn" class="modal-close-btn">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="modal-metric-row">
+          <div class="modal-stat">
+            <div class="stat-label">TEMPERATURE</div>
+            <div class="stat-val" id="modal-temp">31.2°C</div>
+          </div>
+          <div class="modal-stat">
+            <div class="stat-label">SAFE LIMIT</div>
+            <div class="stat-val">75.0°C</div>
+          </div>
+          <div class="modal-stat">
+            <div class="stat-label">THERMAL STATUS</div>
+            <div class="stat-val stat-ok" id="modal-thermal-desc">NOMINAL COOL</div>
+          </div>
+        </div>
+
+        <div class="modal-fault-analysis">
+          <div class="analysis-title">DIAGNOSTIC RCA & RECOMMENDATION:</div>
+          <div class="analysis-body" id="modal-recommendation">
+            Subsystem operating within optimal factory tolerances. Stator coils and ESC phases balanced. No action required.
+          </div>
+        </div>
+
+        <div class="modal-action-row">
+          <button id="modal-stress-btn" class="modal-btn warning">TEST OVERHEAT</button>
+          <button id="modal-cool-btn" class="modal-btn success">FORCE COOL (28°C)</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Main JavaScript Application Entry -->
+  <script type="module" src="app.js"></script>
+</body>
+</html>
