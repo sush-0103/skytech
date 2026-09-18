@@ -1,0 +1,14 @@
+# Datasets - too large for git
+*.zip
+05_VisDrone_detection_tracking/
+03_OpenSky_flight_telemetry/
+02_Dubai_aerial_segmentation/
+04_AUAIR_multimodal_uav/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
