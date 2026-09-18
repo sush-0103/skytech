@@ -185,12 +185,13 @@ class TacticalDetectionLoss(nn.Module):
             # Resize ignore masks to this level's grid resolution
             ign_ds = F.interpolate(ignore_masks.unsqueeze(1), size=(h, w), mode="nearest").squeeze(1)  # (B, H, W)
             
-            # 1. Classification Loss (Focal Loss, masked by ignore map)
+            # 1. Classification Loss (Alpha-Balanced Focal Loss, masked by ignore map)
             valid_cls_mask = (ign_ds > 0.5).unsqueeze(1).expand(-1, self.num_classes, -1, -1)
             bce_cls = F.binary_cross_entropy_with_logits(cls_p, cls_targets, reduction="none")
             p = torch.sigmoid(cls_p)
+            alpha_weight = torch.where(cls_targets == 1.0, 0.75, 0.25)
             focal_weight = torch.where(cls_targets == 1.0, 1.0 - p, p).pow(2.0)
-            cls_loss = (bce_cls * focal_weight * valid_cls_mask).sum()
+            cls_loss = (bce_cls * alpha_weight * focal_weight * valid_cls_mask).sum()
             
             # 2. Box Regression and Centerness Loss on positive points
             n_pos = pos_mask.sum().item()
@@ -229,7 +230,7 @@ class TacticalDetectionLoss(nn.Module):
             total_cls_loss += cls_loss
             
         norm_factor = max(num_pos_total, 1)
-        loss = (total_cls_loss / norm_factor) + 2.0 * (total_reg_loss / norm_factor) + (total_ctr_loss / norm_factor)
+        loss = (total_cls_loss / norm_factor) + 3.0 * (total_reg_loss / norm_factor) + 1.5 * (total_ctr_loss / norm_factor)
         return loss, total_cls_loss.item() / norm_factor, total_reg_loss.item() / norm_factor if num_pos_total > 0 else 0.0
 
 
@@ -244,8 +245,11 @@ def train_detection(epochs=10, batch_size=16, target_size=512, sources=("visdron
         try:
             test_t = torch.zeros(1, device="cuda")
             device = torch.device("cuda")
+            torch.cuda.set_per_process_memory_fraction(0.70, 0)
             torch.backends.cudnn.benchmark = True
-            print(f"Using GPU: {torch.cuda.get_device_name(0)} (Blackwell Compute Capability {torch.cuda.get_device_capability(0)})", flush=True)
+            torch.backends.cuda.matmul.allow_tf32 = True
+            torch.backends.cudnn.allow_tf32 = True
+            print(f"Using GPU: {torch.cuda.get_device_name(0)} (VRAM safe-budget: ~5.6 GB, TF32: Active)", flush=True)
         except Exception as e:
             print(f"GPU detected but CUDA kernels not built for this arch ({e}). Falling back to CPU.", flush=True)
             
@@ -362,8 +366,8 @@ def train_detection(epochs=10, batch_size=16, target_size=512, sources=("visdron
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train Tactical Aerial Object Detector")
-    parser.add_argument("--epochs", type=int, default=20, help="Number of epochs")
-    parser.add_argument("--batch_size", type=int, default=16, help="Batch size")
+    parser.add_argument("--epochs", type=int, default=5, help="Number of epochs")
+    parser.add_argument("--batch_size", type=int, default=8, help="Batch size")
     parser.add_argument("--target_size", type=int, default=512, help="Image resolution")
     parser.add_argument("--lr", type=float, default=1e-3, help="Learning rate")
     parser.add_argument("--sources", nargs="+", default=["visdrone", "auair"], help="Dataset sources")

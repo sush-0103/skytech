@@ -138,14 +138,18 @@ def evaluate_detector(ckpt_path: str, max_batches: int = 50, target_size: int = 
                 b_targets = targets[targets[:, 0] == b_i]
                 n_gt = len(b_targets)
                 
-                # Check detections across levels
+                # Check detections across levels with 3x3 local Peak NMS
                 level_hits = 0
                 for lvl in range(4):
                     cls_p = torch.sigmoid(cls_preds[lvl][b_i])
                     ctr_p = torch.sigmoid(ctr_preds[lvl][b_i, 0])
                     max_cls, _ = torch.max(cls_p, dim=0)
                     scores = torch.sqrt(max_cls * ctr_p)
-                    level_hits += (scores > 0.30).sum().item()
+                    # 3x3 local peak extraction (NMS)
+                    s_pad = F.pad(scores.unsqueeze(0).unsqueeze(0), (1, 1, 1, 1))
+                    max_s = F.max_pool2d(s_pad, kernel_size=3, stride=1, padding=0).squeeze()
+                    is_peak = (scores == max_s) & (scores > 0.32)
+                    level_hits += is_peak.sum().item()
                     
                 if n_gt > 0:
                     tp = min(n_gt, level_hits)
