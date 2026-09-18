@@ -87,4 +87,3 @@ def create_gray_drone_glb(input_path, output_path):
 
 if __name__ == '__main__':
     create_gray_drone_glb('source/fly.glb', 'gray_drone.glb')
-    create_gray_drone_glb('source/fly.glb', 'source/gray_drone.glb')

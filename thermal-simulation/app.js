@@ -405,7 +405,7 @@ function loadDroneModel() {
       }
     },
     (err) => {
-      console.error('Failed to load fly.glb:', err);
+      console.error('Failed to load gray_drone.glb:', err);
       if (statusText) statusText.textContent = 'Error loading model file.';
     }
   );

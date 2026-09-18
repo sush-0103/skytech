@@ -49,8 +49,8 @@ const server = http.createServer((req, res) => {
   const safePath = path.normalize(pathname).replace(/^(\.\.[\/\\])+/, '');
   const filePath = path.join(BASE_DIR, safePath);
 
-  // Security check: ensure filePath is inside BASE_DIR
-  if (!filePath.startsWith(BASE_DIR)) {
+  // Security check: ensure filePath is inside BASE_DIR (case-insensitive for Windows)
+  if (!filePath.toLowerCase().startsWith(BASE_DIR.toLowerCase())) {
     res.writeHead(403, { 'Content-Type': 'text/plain' });
     res.end('Forbidden');
     return;

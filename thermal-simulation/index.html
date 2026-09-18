@@ -13,12 +13,12 @@
   
   <link rel="stylesheet" href="styles.css">
 
-  <!-- Importmap for native ES Modules from local node_modules -->
+  <!-- Importmap for Three.js ES Modules (direct unpkg CDN matching package.json v0.186.0) -->
   <script type="importmap">
   {
     "imports": {
-      "three": "/node_modules/three/build/three.module.js",
-      "three/addons/": "/node_modules/three/examples/jsm/"
+      "three": "https://unpkg.com/three@0.186.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.186.0/examples/jsm/"
     }
   }
   </script>
