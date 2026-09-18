@@ -11,17 +11,17 @@
       "Vegetation": 34.62,
       "Road": 37.45
     },
-    "eval_time_sec": 3.17
+    "eval_time_sec": 2.65
   },
   "detection": {
     "model": "Tactical Aerial Object Detector",
     "parameters": 1790431,
-    "precision_pct": 10.77,
-    "recall_pct": 99.89,
-    "f1_score_pct": 19.45,
-    "total_true_positives": 12316,
-    "total_false_positives": 102020,
-    "total_false_negatives": 14,
-    "eval_time_sec": 10.34
+    "precision_pct": 7.7,
+    "recall_pct": 100.0,
+    "f1_score_pct": 14.3,
+    "total_true_positives": 12330,
+    "total_false_positives": 147775,
+    "total_false_negatives": 0,
+    "eval_time_sec": 8.01
   }
 }
