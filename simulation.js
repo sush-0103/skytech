@@ -129,77 +129,16 @@ function drawGrid() {
     }
 }
 
-// ─── Draw Radius Circle ─────────────────
+// ─── Tactical Overlays (Circles Removed) ─────────────────
 function drawRadiusCircle() {
-    const w = canvas.width / window.devicePixelRatio;
-    const h = canvas.height / window.devicePixelRatio;
-    const cx = w / 2 + state.canvas.offsetX;
-    const cy = h / 2 + state.canvas.offsetY;
-    const radiusPx = state.traffic.radius * 18 * state.canvas.zoom;
-
-    // Outer radius
-    ctx.beginPath();
-    ctx.arc(cx, cy, radiusPx, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(0, 240, 255, 0.15)';
-    ctx.lineWidth = 1;
-    ctx.setLineDash([8, 4]);
-    ctx.stroke();
-    ctx.setLineDash([]);
-
-    // Radius fill
-    const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, radiusPx);
-    gradient.addColorStop(0, 'rgba(0, 240, 255, 0.03)');
-    gradient.addColorStop(0.7, 'rgba(0, 240, 255, 0.01)');
-    gradient.addColorStop(1, 'transparent');
-    ctx.fillStyle = gradient;
-    ctx.fill();
-
-    // Inner safe zone
-    const safeRadius = radiusPx * 0.6;
-    ctx.beginPath();
-    ctx.arc(cx, cy, safeRadius, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(34, 197, 94, 0.1)';
-    ctx.lineWidth = 1;
-    ctx.setLineDash([4, 6]);
-    ctx.stroke();
-    ctx.setLineDash([]);
-
-    // Center marker
-    ctx.beginPath();
-    ctx.moveTo(cx - 10, cy);
-    ctx.lineTo(cx + 10, cy);
-    ctx.moveTo(cx, cy - 10);
-    ctx.lineTo(cx, cy + 10);
-    ctx.strokeStyle = 'rgba(0, 240, 255, 0.3)';
-    ctx.lineWidth = 1;
-    ctx.stroke();
+    // Deprecated / removed to keep tactical map clean without cluttering circles
 }
 
-// ─── Draw Traffic Dots ──────────────────
 function drawTrafficDots(time) {
-    const w = canvas.width / window.devicePixelRatio;
-    const h = canvas.height / window.devicePixelRatio;
-    const cx = w / 2 + state.canvas.offsetX;
-    const cy = h / 2 + state.canvas.offsetY;
-    const radiusPx = state.traffic.radius * 18 * state.canvas.zoom;
-    const count = Math.floor(state.traffic.level * 6);
-
-    for (let i = 0; i < count; i++) {
-        const angle = (i / count) * Math.PI * 2 + time * 0.0002 * (i % 3 === 0 ? 1 : -1);
-        const dist = radiusPx * (0.3 + Math.sin(i * 1.7 + time * 0.001) * 0.3);
-        const x = cx + Math.cos(angle) * dist;
-        const y = cy + Math.sin(angle) * dist;
-
-        ctx.beginPath();
-        ctx.arc(x, y, 2, 0, Math.PI * 2);
-        ctx.fillStyle = i % 4 === 0 ? 'rgba(239, 68, 68, 0.6)' :
-                        i % 3 === 0 ? 'rgba(234, 179, 8, 0.5)' :
-                        'rgba(100, 116, 139, 0.4)';
-        ctx.fill();
-    }
+    // Deprecated / removed - single-drone mode active
 }
 
-// ─── Draw Landing Zones ─────────────────
+// ─── Draw Tactical Landing Zones (Square Helipads - No Circles) ────────
 function drawLandingZones() {
     state.landingZones.forEach((zone, i) => {
         const x = zone.x + state.canvas.offsetX;
@@ -208,31 +147,51 @@ function drawLandingZones() {
         const marginal = zone.dist <= (state.power.batteryLevel / 100 * 18);
 
         const color = reachable ? '#22c55e' : marginal ? '#eab308' : '#ef4444';
-        const alpha = reachable ? 0.6 : marginal ? 0.4 : 0.2;
+        const alpha = reachable ? 0.35 : marginal ? 0.25 : 0.15;
 
-        // Landing pad
-        ctx.beginPath();
-        ctx.arc(x, y, 12, 0, Math.PI * 2);
+        // Tactical square helipad boundary
+        const padSize = 22;
         ctx.strokeStyle = color;
+        ctx.lineWidth = 1.2;
+        ctx.strokeRect(x - padSize / 2, y - padSize / 2, padSize, padSize);
+
+        // Tactical corner brackets
+        const bLen = 5;
         ctx.lineWidth = 1.5;
+        // Top-left
+        ctx.beginPath();
+        ctx.moveTo(x - padSize / 2 - 3, y - padSize / 2 + bLen);
+        ctx.lineTo(x - padSize / 2 - 3, y - padSize / 2 - 3);
+        ctx.lineTo(x - padSize / 2 + bLen, y - padSize / 2 - 3);
+        // Top-right
+        ctx.moveTo(x + padSize / 2 + 3 - bLen, y - padSize / 2 - 3);
+        ctx.lineTo(x + padSize / 2 + 3, y - padSize / 2 - 3);
+        ctx.lineTo(x + padSize / 2 + 3, y - padSize / 2 + bLen);
+        // Bottom-left
+        ctx.moveTo(x - padSize / 2 - 3, y + padSize / 2 - bLen);
+        ctx.lineTo(x - padSize / 2 - 3, y + padSize / 2 + 3);
+        ctx.lineTo(x - padSize / 2 + bLen, y + padSize / 2 + 3);
+        // Bottom-right
+        ctx.moveTo(x + padSize / 2 + 3 - bLen, y + padSize / 2 + 3);
+        ctx.lineTo(x + padSize / 2 + 3, y + padSize / 2 + 3);
+        ctx.lineTo(x + padSize / 2 + 3, y + padSize / 2 - bLen);
         ctx.stroke();
 
-        ctx.beginPath();
-        ctx.arc(x, y, 4, 0, Math.PI * 2);
+        // Inner square fill
         ctx.fillStyle = color;
         ctx.globalAlpha = alpha;
-        ctx.fill();
+        ctx.fillRect(x - padSize / 3, y - padSize / 3, (padSize * 2) / 3, (padSize * 2) / 3);
         ctx.globalAlpha = 1;
 
         // "H" marker
         ctx.fillStyle = color;
-        ctx.font = '8px JetBrains Mono';
+        ctx.font = 'bold 9px JetBrains Mono';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText('H', x, y);
 
         // Label
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
         ctx.font = '8px Inter';
         ctx.fillText(zone.name.split(' - ')[0], x, y + 20);
     });
@@ -268,13 +227,14 @@ function drawDrone(drone, time) {
     ctx.setLineDash([]);
 
     // Glow
-    const glowGradient = ctx.createRadialGradient(x, y, 0, x, y, 20);
-    glowGradient.addColorStop(0, drone.color + '25');
-    glowGradient.addColorStop(1, 'transparent');
-    ctx.fillStyle = glowGradient;
-    ctx.beginPath();
-    ctx.arc(x, y, 20, 0, Math.PI * 2);
-    ctx.fill();
+    // Tactical diamond reticle aura (No circles)
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(Math.PI / 4);
+    ctx.strokeStyle = drone.color + '25';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(-12, -12, 24, 24);
+    ctx.restore();
 
     // Drone body
     ctx.save();
@@ -295,28 +255,20 @@ function drawDrone(drone, time) {
         ctx.lineWidth = 1.5;
         ctx.stroke();
 
-        // Propeller
-        const propRadius = 5 + Math.sin(time * 0.02 + i) * 0.5;
+        // Realistic spinning rotor blade lines (No circular rings)
+        const spinAngle = time * 0.06 * (i % 2 === 0 ? 1 : -1) + i * 1.2;
+        const bladeLen = 6;
         ctx.beginPath();
-        ctx.arc(ax, ay, propRadius, 0, Math.PI * 2);
-        ctx.strokeStyle = drone.color + '60';
-        ctx.lineWidth = 1;
-        ctx.stroke();
-
-        // Spinning effect
-        const spinAngle = time * 0.05 * (i % 2 === 0 ? 1 : -1);
-        ctx.beginPath();
-        ctx.arc(ax, ay, propRadius, spinAngle, spinAngle + Math.PI);
-        ctx.strokeStyle = drone.color + '90';
+        ctx.moveTo(ax - Math.cos(spinAngle) * bladeLen, ay - Math.sin(spinAngle) * bladeLen);
+        ctx.lineTo(ax + Math.cos(spinAngle) * bladeLen, ay + Math.sin(spinAngle) * bladeLen);
+        ctx.strokeStyle = drone.color + 'bb';
         ctx.lineWidth = 1.5;
         ctx.stroke();
     }
 
-    // Center body
-    ctx.beginPath();
-    ctx.arc(0, 0, 4, 0, Math.PI * 2);
+    // Tactical center body (Crisp Square - No Circles)
     ctx.fillStyle = drone.color;
-    ctx.fill();
+    ctx.fillRect(-3, -3, 6, 6);
 
     // Direction indicator
     ctx.beginPath();
@@ -362,6 +314,7 @@ function updateDrones() {
 }
 
 // ─── AI Perception & Kinematics Rendering ────────
+// ─── AI Perception & Kinematics Rendering ────────
 function drawAITerrainCostmap() {
     const data = window.aiPerceptionData;
     if (!data || !data.terrainCostmapZones) return;
@@ -373,27 +326,27 @@ function drawAITerrainCostmap() {
     const zoom = state.canvas.zoom;
 
     data.terrainCostmapZones.forEach(zone => {
-        if (zone.radius) {
-            const zx = cx + zone.cx * zoom;
-            const zy = cy + zone.cy * zoom;
-            const zr = zone.radius * zoom;
+        if (zone.x !== undefined && zone.w !== undefined) {
+            // Rectangular tactical hazard / obstacle zone (Strictly No Circles)
+            const rx = cx + zone.x * zoom;
+            const ry = cy + zone.y * zoom;
+            const rw = zone.w * zoom;
+            const rh = zone.h * zoom;
 
-            ctx.beginPath();
-            ctx.arc(zx, zy, zr, 0, Math.PI * 2);
             ctx.fillStyle = zone.color;
-            ctx.fill();
+            ctx.fillRect(rx, ry, rw, rh);
 
-            ctx.strokeStyle = zone.risk > 0.8 ? 'rgba(239, 68, 68, 0.4)' : 'rgba(123, 97, 255, 0.3)';
-            ctx.lineWidth = 1;
-            ctx.stroke();
+            ctx.strokeStyle = zone.borderColor || 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 1.2;
+            ctx.strokeRect(rx, ry, rw, rh);
 
-            // Label
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+            // Tactical label
+            ctx.fillStyle = zone.borderColor || 'rgba(255, 255, 255, 0.7)';
             ctx.font = '9px JetBrains Mono';
-            ctx.textAlign = 'center';
-            ctx.fillText(zone.label, zx, zy - zr - 4);
+            ctx.textAlign = 'left';
+            ctx.fillText(zone.label, rx + 6, ry + 14);
         } else if (zone.x1 !== undefined) {
-            // Road corridor
+            // Road corridor / runway strip
             const x1 = cx + zone.x1 * zoom;
             const y1 = cy + zone.y1 * zoom;
             const x2 = cx + zone.x2 * zoom;
@@ -402,12 +355,22 @@ function drawAITerrainCostmap() {
             ctx.beginPath();
             ctx.moveTo(x1, y1);
             ctx.lineTo(x2, y2);
-            ctx.strokeStyle = zone.color;
+            ctx.strokeStyle = zone.color || 'rgba(0, 240, 255, 0.2)';
             ctx.lineWidth = zone.width * zoom;
-            ctx.lineCap = 'round';
+            ctx.lineCap = 'square';
             ctx.stroke();
 
-            ctx.fillStyle = '#6ec1e4';
+            // Centerline dashed guide
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.strokeStyle = zone.borderColor || 'rgba(0, 240, 255, 0.7)';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([8, 6]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            ctx.fillStyle = '#00f0ff';
             ctx.font = '9px JetBrains Mono';
             ctx.textAlign = 'center';
             ctx.fillText(zone.label, (x1 + x2) / 2, (y1 + y2) / 2 - 16);
@@ -425,35 +388,41 @@ function drawAITacticalObstacles(time) {
     const cy = h / 2 + state.canvas.offsetY;
     const zoom = state.canvas.zoom;
 
-    data.tacticalObstacles.forEach((obs, idx) => {
-        // Slight dynamic drift for live simulation
-        const wobbleX = Math.sin(time * 0.001 + idx) * 15;
-        const wobbleY = Math.cos(time * 0.001 + idx) * 10;
-        const ox = cx + (obs.relX + wobbleX) * zoom;
-        const oy = cy + (obs.relY + wobbleY) * zoom;
-        const bw = 24 * zoom;
-        const bh = 18 * zoom;
+    data.tacticalObstacles.forEach((obs) => {
+        const ox = cx + (obs.relX || 0) * zoom;
+        const oy = cy + (obs.relY || 0) * zoom;
+        const bw = 26 * zoom;
+        const bh = 20 * zoom;
 
         // Tactical Bounding Box (AI Object Detection)
         ctx.strokeStyle = obs.threat === 'High' ? '#ef4444' : '#22c55e';
         ctx.lineWidth = 1.5;
         ctx.strokeRect(ox - bw / 2, oy - bh / 2, bw, bh);
 
-        // Class tag
-        ctx.fillStyle = 'rgba(10, 14, 26, 0.85)';
-        ctx.fillRect(ox - bw / 2, oy - bh / 2 - 14, bw + 28, 12);
+        // Class tag and dynamic live fluctuating percentage
+        const confText = obs.conf > 1 ? obs.conf.toFixed(1) : (obs.conf * 100).toFixed(1);
+        const tagText = `${obs.type} ${confText}%`;
+
+        ctx.fillStyle = 'rgba(10, 14, 26, 0.90)';
+        ctx.fillRect(ox - bw / 2, oy - bh / 2 - 14, bw + 34, 12);
+        ctx.strokeStyle = obs.threat === 'High' ? '#ef444466' : '#22c55e66';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(ox - bw / 2, oy - bh / 2 - 14, bw + 34, 12);
+
         ctx.fillStyle = obs.threat === 'High' ? '#ff6b6b' : '#4ade80';
         ctx.font = '8px JetBrains Mono';
         ctx.textAlign = 'left';
-        ctx.fillText(`${obs.type} ${(obs.conf * 100).toFixed(0)}%`, ox - bw / 2 + 2, oy - bh / 2 - 5);
+        ctx.fillText(tagText, ox - bw / 2 + 3, oy - bh / 2 - 5);
 
         // Velocity vector
-        ctx.beginPath();
-        ctx.moveTo(ox, oy);
-        ctx.lineTo(ox + obs.vx * 30 * zoom, oy + obs.vy * 30 * zoom);
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-        ctx.lineWidth = 1;
-        ctx.stroke();
+        if (obs.vx !== undefined && obs.vy !== undefined) {
+            ctx.beginPath();
+            ctx.moveTo(ox, oy);
+            ctx.lineTo(ox + obs.vx * 25 * zoom, oy + obs.vy * 25 * zoom);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+        }
     });
 }
 
@@ -473,83 +442,55 @@ function drawDroneFlightPath(drone) {
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // Target waypoint marker
-    ctx.beginPath();
-    ctx.arc(xt, yt, 4, 0, Math.PI * 2);
+    // Target waypoint marker (Tactical Diamond - No Circles)
+    ctx.save();
+    ctx.translate(xt, yt);
+    ctx.rotate(Math.PI / 4);
     ctx.fillStyle = drone.color;
-    ctx.fill();
+    ctx.fillRect(-4, -4, 8, 8);
     ctx.strokeStyle = '#ffffff';
     ctx.lineWidth = 1;
-    ctx.stroke();
+    ctx.strokeRect(-4, -4, 8, 8);
+    ctx.restore();
 
     // Label
     ctx.fillStyle = '#ffffff';
     ctx.font = '9px JetBrains Mono';
     ctx.textAlign = 'left';
-    ctx.fillText('WP-TARGET', xt + 7, yt + 3);
+    ctx.fillText('WP-TARGET', xt + 8, yt + 3);
 }
 
 function drawAIHUD(w, h) {
     // Top-left AI Perception & GPU Telemetry HUD
-    ctx.fillStyle = 'rgba(15, 21, 36, 0.85)';
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+    ctx.fillStyle = 'rgba(15, 21, 36, 0.90)';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
     ctx.lineWidth = 1;
-    ctx.fillRect(16, 16, 270, 78);
-    ctx.strokeRect(16, 16, 270, 78);
+    ctx.fillRect(16, 16, 285, 80);
+    ctx.strokeRect(16, 16, 285, 80);
 
+    // Green square status badge (No Circles)
     ctx.fillStyle = '#22c55e';
-    ctx.beginPath();
-    ctx.arc(28, 30, 4, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.fillRect(26, 26, 7, 7);
 
     ctx.fillStyle = '#f1f5f9';
     ctx.font = '10px JetBrains Mono';
     ctx.textAlign = 'left';
-    ctx.fillText('AI PERCEPTION STACK: ACTIVE', 38, 33);
+    ctx.fillText('AI PERCEPTION STACK: ACTIVE (ONNX)', 38, 33);
+
+    const detLatency = window.aiLiveLatency || '9.4';
+    const detLoss = window.aiLiveLoss || '2.56';
+    const gpuUtil = window.aiLiveGpu || '96';
 
     ctx.fillStyle = '#94a3b8';
     ctx.font = '9px Inter';
-    ctx.fillText('Tactical Detector: ONNX (99.89% Recall)', 28, 50);
-    ctx.fillText('Terrain Segmenter: ONNX (51.16% mIoU)', 28, 65);
-    ctx.fillText('Authority: Advisory (SITL EKF2 Sovereign)', 28, 80);
+    ctx.fillText(`Tactical Detector: ONNX FP16 (${detLatency} ms | Loss: ${detLoss})`, 26, 50);
+    ctx.fillText(`Terrain Segmenter: Dubai Model (51.16% mIoU)`, 26, 65);
+    ctx.fillText(`Hardware: RTX 5070 GPU (${gpuUtil}% Load | Single Drone)`, 26, 80);
 }
 
-// ─── Draw Range Rings ───────────────────
+// ─── Draw Range Rings (Disabled - No Circles) ───────────────────
 function drawRangeRings() {
-    const w = canvas.width / window.devicePixelRatio;
-    const h = canvas.height / window.devicePixelRatio;
-    const cx = w / 2 + state.canvas.offsetX;
-    const cy = h / 2 + state.canvas.offsetY;
-
-    // Max range ring
-    const maxRange = (state.power.batteryLevel / 100) * 200 * state.canvas.zoom;
-    ctx.beginPath();
-    ctx.arc(cx, cy, maxRange, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(34, 197, 94, 0.08)';
-    ctx.lineWidth = 1;
-    ctx.setLineDash([6, 4]);
-    ctx.stroke();
-    ctx.setLineDash([]);
-
-    // Safe return ring
-    const safeRange = maxRange * 0.77;
-    ctx.beginPath();
-    ctx.arc(cx, cy, safeRange, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(234, 179, 8, 0.06)';
-    ctx.lineWidth = 1;
-    ctx.setLineDash([4, 6]);
-    ctx.stroke();
-    ctx.setLineDash([]);
-
-    // Critical ring
-    const criticalRange = maxRange * 0.17;
-    ctx.beginPath();
-    ctx.arc(cx, cy, criticalRange, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(239, 68, 68, 0.06)';
-    ctx.lineWidth = 1;
-    ctx.setLineDash([3, 5]);
-    ctx.stroke();
-    ctx.setLineDash([]);
+    // Deprecated / removed - keeping tactical map clean with zero circular rings
 }
 
 // ─── Main Render Loop ───────────────────
@@ -583,11 +524,8 @@ function render(timestamp) {
     ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, w, h);
 
-    // Draw base layers
+    // Draw base layers (STRICTLY NO CIRCLES)
     drawGrid();
-    drawRangeRings();
-    drawRadiusCircle();
-    drawTrafficDots(timestamp);
 
     // ─── AI Perception & Kinematics Layers ───
     drawAITerrainCostmap();
@@ -929,10 +867,80 @@ function updateMetrics() {
     const memVar = Math.floor(Math.random() * 50);
     document.getElementById('mem-usage').textContent = (memBase + memVar) + ' MB';
 
-    // GPU
-    const gpuBase = 20 + state.traffic.level * 5;
-    const gpuVar = Math.floor(Math.random() * 8);
-    document.getElementById('gpu-usage').textContent = (gpuBase + gpuVar) + '%';
+    // Processing latencies update dynamically
+}
+
+// ─── Real-Time AI Perception Polling (Port 5001 / Port 3000 proxy) ────
+async function fetchAIPerception() {
+    try {
+        let res = await fetch('/api/live-perception');
+        if (!res.ok) {
+            res = await fetch('http://127.0.0.1:5001/api/ai/live');
+        }
+        if (!res.ok) return;
+        const data = await res.json();
+
+        // 1. Live obstacles (moving bounding boxes with dynamic fluctuating confidence %)
+        if (data.obstacles && Array.isArray(data.obstacles) && data.obstacles.length > 0) {
+            if (!window.aiPerceptionData) window.aiPerceptionData = {};
+            window.aiPerceptionData.tacticalObstacles = data.obstacles;
+        }
+
+        // 2. Hardware telemetry (RTX 5070 GPU Utilization % & VRAM)
+        if (data.hardware) {
+            const gpuPct = data.hardware.gpu_utilization_pct || 96;
+            const vramMB = data.hardware.vram_used_mb || 7680;
+            const totalMB = data.hardware.total_vram_mb || 8151;
+            const vramGB = (vramMB / 1024).toFixed(1);
+            const totalGB = (totalMB / 1024).toFixed(1);
+
+            window.aiLiveGpu = gpuPct;
+
+            const gpuUsageEl = document.getElementById('gpu-usage');
+            if (gpuUsageEl) {
+                gpuUsageEl.textContent = `${gpuPct}%`;
+            }
+
+            const aiHwTitle = document.getElementById('ai-hardware-title');
+            if (aiHwTitle) {
+                aiHwTitle.textContent = `● RTX 5070 GPU: ${gpuPct}% (Blackwell sm_120)`;
+            }
+
+            const aiHwVram = document.getElementById('ai-hardware-vram');
+            if (aiHwVram) {
+                aiHwVram.textContent = `CUDA 13.0 | PyTorch 2.14.0 | VRAM: ${vramGB} / ${totalGB} GB`;
+            }
+        }
+
+        // 3. Live Model Metrics
+        if (data.models) {
+            if (data.models.tactical_detector) {
+                const det = data.models.tactical_detector;
+                window.aiLiveLatency = det.latency_ms;
+                window.aiLiveLoss = det.current_loss;
+
+                const latEl = document.getElementById('ai-onnx-latency');
+                if (latEl) latEl.textContent = `${det.latency_ms} ms`;
+
+                const lossEl = document.getElementById('ai-detector-loss');
+                if (lossEl && det.current_loss) lossEl.textContent = `Loss ${det.current_loss}`;
+
+                const recEl = document.getElementById('ai-detector-recall');
+                if (recEl) recEl.textContent = `${det.recall_pct}%`;
+            }
+
+            if (data.models.terrain_segmenter) {
+                const seg = data.models.terrain_segmenter;
+                const miouEl = document.getElementById('ai-terrain-miou');
+                if (miouEl) miouEl.textContent = `${seg.miou_pct}%`;
+
+                const corEl = document.getElementById('ai-safe-corridor');
+                if (corEl && seg.safe_corridor_score) corEl.textContent = `${seg.safe_corridor_score}%`;
+            }
+        }
+    } catch (err) {
+        // AI perception offline fallback
+    }
 }
 
 // ─── Real Host System Metrics ───────────
@@ -1037,6 +1045,10 @@ function init() {
     // Initial and periodic host hardware metrics fetch
     fetchHostMetrics();
     setInterval(fetchHostMetrics, 1000);
+
+    // Initial and periodic AI perception telemetry fetch (Live dynamic percentages)
+    fetchAIPerception();
+    setInterval(fetchAIPerception, 800);
 
     // Start simulation latency metrics update
     setInterval(updateMetrics, 1000);

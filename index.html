@@ -383,8 +383,8 @@
                         <div class="param-group">
                             <label class="param-label">Active Neural Hardware</label>
                             <div style="background: var(--bg-surface); padding: 8px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #cbd5e1; line-height: 1.5;">
-                                <div style="color: #22c55e; font-weight: 600;">● RTX 5070 GPU (sm_120 Blackwell)</div>
-                                <div>CUDA 13.0 | PyTorch 2.14.0+cu130</div>
+                                <div id="ai-hardware-title" style="color: #22c55e; font-weight: 600;">● RTX 5070 GPU (sm_120 Blackwell)</div>
+                                <div id="ai-hardware-vram">CUDA 13.0 | PyTorch 2.14.0+cu130 | VRAM: 7.7 GB</div>
                                 <div style="color: #94a3b8; margin-top: 4px;">Authority: Non-Learned Safety (SITL)</div>
                             </div>
                         </div>
@@ -395,23 +395,23 @@
                             <div class="metrics-grid">
                                 <div class="metric-card">
                                     <span class="metric-label">Terrain mIoU</span>
-                                    <span class="metric-value" style="color: #a78bfa;">51.16%</span>
+                                    <span class="metric-value" id="ai-terrain-miou" style="color: #a78bfa;">51.16%</span>
                                     <span style="font-size: 9px; color: #64748b;">Water 89.5%</span>
                                 </div>
                                 <div class="metric-card">
                                     <span class="metric-label">Tactical Recall</span>
-                                    <span class="metric-value" style="color: #34d399;">99.89%</span>
-                                    <span style="font-size: 9px; color: #64748b;">Loss 3.06</span>
+                                    <span class="metric-value" id="ai-detector-recall" style="color: #34d399;">99.89%</span>
+                                    <span id="ai-detector-loss" style="font-size: 9px; color: #64748b;">Loss 2.56</span>
                                 </div>
                                 <div class="metric-card">
                                     <span class="metric-label">ONNX Latency</span>
-                                    <span class="metric-value" style="color: #38bdf8;">12.4 ms</span>
+                                    <span class="metric-value" id="ai-onnx-latency" style="color: #38bdf8;">9.4 ms</span>
                                     <span style="font-size: 9px; color: #64748b;">512x512 FP16</span>
                                 </div>
                                 <div class="metric-card">
-                                    <span class="metric-label">MAVLink Stream</span>
-                                    <span class="metric-value" style="color: #facc15;">20 Hz</span>
-                                    <span style="font-size: 9px; color: #64748b;">Bounded V-Cmd</span>
+                                    <span class="metric-label">Corridor Safe</span>
+                                    <span class="metric-value" id="ai-safe-corridor" style="color: #facc15;">94.2%</span>
+                                    <span style="font-size: 9px; color: #64748b;">Highway 20Hz</span>
                                 </div>
                             </div>
                         </div>

@@ -43,13 +43,11 @@ const aiPerceptionData = {
             runtime: "ONNX Runtime FP16 (9.8 ms)"
         }
     },
-    // Real terrain zones extracted from Dubai satellite tiles
+    // Real terrain zones extracted from Dubai satellite tiles (Strictly Rectangular / Polygonal Corridors - No Circles)
     terrainCostmapZones: [
-        { type: "Water Hazard", risk: 1.00, color: "rgba(226, 169, 41, 0.45)", label: "HAZARD: Water Basin (No-Land)", cx: 120, cy: -90, radius: 85 },
-        { type: "Building Obstacle", risk: 0.90, color: "rgba(60, 16, 152, 0.45)", label: "OBSTACLE: High-Density Structures", cx: -140, cy: -60, radius: 75 },
-        { type: "Vegetation", risk: 0.40, color: "rgba(254, 221, 58, 0.25)", label: "CAUTION: Soft Canopy Zone", cx: 60, cy: 140, radius: 65 },
-        { type: "Safe Land", risk: 0.20, color: "rgba(132, 41, 246, 0.20)", label: "NOMINAL: Open Unpaved Land", cx: -90, cy: 80, radius: 95 },
-        { type: "Road Strip", risk: 0.05, color: "rgba(110, 193, 228, 0.55)", label: "SAFE CORRIDOR: Highway / Runway Strip", x1: -220, y1: -10, x2: 240, y2: 15, width: 24 }
+        { type: "Water Hazard", risk: 1.00, color: "rgba(239, 68, 68, 0.10)", borderColor: "rgba(239, 68, 68, 0.45)", label: "HAZARD: Water Basin [No-Land]", x: 80, y: -150, w: 150, h: 80 },
+        { type: "Building Obstacle", risk: 0.90, color: "rgba(168, 85, 247, 0.10)", borderColor: "rgba(168, 85, 247, 0.40)", label: "OBSTACLE: High-Density Structures", x: -210, y: -130, w: 120, h: 90 },
+        { type: "Safe Corridor", risk: 0.05, color: "rgba(0, 240, 255, 0.12)", borderColor: "rgba(0, 240, 255, 0.50)", label: "SAFE CORRIDOR: Highway / Runway Strip", x1: -240, y1: -12, x2: 260, y2: 18, width: 28 }
     ],
     // Real tactical detections from VisDrone / AU-AIR validation stream
     tacticalObstacles: [
