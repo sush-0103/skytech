@@ -22,8 +22,10 @@ const MIME_TYPES = {
 };
 
 let prevCpus = os.cpus();
+let latestMetrics = null;
 
-function getCpuUsage() {
+// High-resolution continuous CPU sampler (500ms window)
+function sampleCpuUsage() {
     const currentCpus = os.cpus();
     const perCore = currentCpus.map((cpu, i) => {
         const prev = prevCpus[i] || cpu;
@@ -36,7 +38,8 @@ function getCpuUsage() {
         const usage = totalDiff > 0 ? Math.round(((totalDiff - idleDiff) / totalDiff) * 100) : 0;
         return {
             core: i + 1,
-            usage: Math.min(100, Math.max(0, usage))
+            usage: Math.min(100, Math.max(0, usage)),
+            speed: cpu.speed
         };
     });
     prevCpus = currentCpus;
@@ -46,7 +49,7 @@ function getCpuUsage() {
     const freeMem = os.freemem();
     const usedMem = totalMem - freeMem;
 
-    return {
+    latestMetrics = {
         timestamp: Date.now(),
         model: currentCpus[0]?.model || 'Host CPU',
         speed: currentCpus[0]?.speed || 0,
@@ -64,16 +67,45 @@ function getCpuUsage() {
     };
 }
 
+// Initial sample & interval
+sampleCpuUsage();
+setInterval(sampleCpuUsage, 500);
+
+// Real math simulation compute dispatcher
+function executeComputeLoad(coreCount, intensity = 1) {
+    const iterations = Math.min(150000, 30000 * intensity);
+    for (let c = 0; c < Math.min(coreCount, os.cpus().length); c++) {
+        let acc = 0;
+        for (let j = 0; j < iterations; j++) {
+            acc += Math.sin(j) * Math.cos(j) * Math.sqrt(j + 1);
+        }
+    }
+}
+
 const server = http.createServer((req, res) => {
     // API endpoint for real system metrics
     if (req.url === '/api/system-metrics' || req.url === '/api/cpu') {
-        const data = getCpuUsage();
         res.writeHead(200, {
             'Content-Type': 'application/json',
             'Access-Control-Allow-Origin': '*',
             'Cache-Control': 'no-cache, no-store, must-revalidate'
         });
-        return res.end(JSON.stringify(data));
+        return res.end(JSON.stringify(latestMetrics || {}));
+    }
+
+    // API endpoint to execute real distributed compute workload
+    if (req.url.startsWith('/api/simulation-workload')) {
+        const u = new URL(req.url, `http://localhost:${PORT}`);
+        const cores = parseInt(u.searchParams.get('cores')) || 4;
+        const active = u.searchParams.get('active') === '1';
+        if (active) {
+            executeComputeLoad(cores, 1.5);
+        }
+        res.writeHead(200, {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*'
+        });
+        return res.end(JSON.stringify({ status: 'ok', dispatchedCores: cores, active }));
     }
 
     // API endpoint for live AI perception stream

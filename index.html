@@ -94,15 +94,36 @@
             <div class="canvas-viewport" id="viewport">
                 <canvas id="sim-canvas"></canvas>
 
+                <!-- Tactical Vertical Altitude / Climb Ladder Bar -->
+                <div class="altitude-ladder-bar" id="alt-ladder" title="Click/drag to adjust altitude stratum">
+                    <span class="alt-title">ALT</span>
+                    <div class="alt-track">
+                        <div class="alt-ticks">
+                            <span>250m</span>
+                            <span>200m</span>
+                            <span>150m</span>
+                            <span>100m</span>
+                            <span>50m</span>
+                            <span>0m</span>
+                        </div>
+                        <div class="alt-indicator" id="alt-indicator" style="bottom: 48%;">
+                            <span class="alt-value" id="alt-readout">120m</span>
+                        </div>
+                    </div>
+                    <span class="alt-climb-rate" id="alt-climb">+1.2 m/s</span>
+                </div>
+
                 <!-- Coordinate Bar -->
                 <div class="coord-bar">
                     <span>X: <span id="coord-x">0.000</span></span>
                     <span>Y: <span id="coord-y">0.000</span></span>
-                    <span>Z: <span id="coord-z">0.000</span></span>
+                    <span>Z: <span id="coord-z">120.0</span>m</span>
                     <span class="coord-divider">|</span>
                     <span>Zoom: <span id="coord-zoom">100</span>%</span>
                     <span class="coord-divider">|</span>
-                    <span>Grid: 50m</span>
+                    <span>Grid: <span id="grid-status-text">50m (ON)</span></span>
+                    <span class="coord-divider">|</span>
+                    <span class="active-tool-display">Tool: <strong id="active-tool-name" style="color: var(--text-primary);">Select (SEL)</strong></span>
                 </div>
             </div>
         </main>
@@ -208,12 +229,15 @@
                                 <!-- Populated dynamically from localhost system telemetry -->
                             </div>
                             <div class="slider-container cpu-cap-container">
-                                <label class="param-sublabel">Drone Processing Core Cap</label>
-                                <input type="range" class="custom-slider memory-slider" id="cpu-cores" min="1" max="8" step="1" value="4">
-                                <div class="slider-marks">
-                                    <span>1 Core</span>
-                                    <span>4 Cores</span>
-                                    <span>8 Cores</span>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                    <label class="param-sublabel" style="margin-bottom: 0;">Drone Processing Core Cap</label>
+                                    <span class="param-value-display" id="cores-cap-display">4 Cores</span>
+                                </div>
+                                <input type="range" class="custom-slider memory-slider" id="cpu-cores" min="1" max="20" step="1" value="4">
+                                <div class="slider-marks" id="cpu-cores-marks">
+                                    <span id="mark-min">1 Core</span>
+                                    <span id="mark-mid">10 Cores</span>
+                                    <span id="mark-max">20 Cores</span>
                                 </div>
                             </div>
                         </div>
@@ -277,23 +301,6 @@
                                     <span>0%</span>
                                     <span>50%</span>
                                     <span>100%</span>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Power Consumption (CSS Meter - No SVG) -->
-                        <div class="param-group">
-                            <label class="param-label">
-                                Power Consumption Rate
-                                <span class="param-value-display" id="consumption-text">245W</span>
-                            </label>
-                            <div class="consumption-meter">
-                                <div class="consumption-bar-track">
-                                    <div class="consumption-bar-fill" id="consumption-bar" style="width: 49%"></div>
-                                </div>
-                                <div class="slider-marks">
-                                    <span>100W Idle</span>
-                                    <span>300W Cruise</span>
-                                    <span>500W Max</span>
                                 </div>
                             </div>
                         </div>
@@ -620,6 +627,7 @@
         </div>
         <div class="status-right">
             <span class="status-item">FPS: <span id="fps-counter">60</span></span>
+            <span class="status-item">Host CPU: <span id="cpu-status">20 Cores</span></span>
             <span class="status-item">Host Mem: <span id="mem-usage">Loading...</span></span>
             <span class="status-item">GPU: <span id="gpu-usage">98%</span></span>
         </div>
