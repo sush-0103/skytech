@@ -795,8 +795,8 @@ function drawAIHUD(w, h) {
     const isAvoiding = drone && drone.avoidanceActive;
 
     // Top-left AI Perception & 3D Kinematic A* Telemetry HUD
-    const hudW = 330;
-    const hudH = 118;
+    const hudW = 345;
+    const hudH = 132;
     ctx.fillStyle = 'rgba(15, 21, 36, 0.92)';
     ctx.strokeStyle = isAvoiding ? 'rgba(245, 158, 11, 0.50)' : 'rgba(255, 255, 255, 0.12)';
     ctx.lineWidth = 1.2;
@@ -817,18 +817,21 @@ function drawAIHUD(w, h) {
     const detLatency = window.aiLiveLatency || '9.1';
     const detLoss = window.aiLiveLoss || '0.4578';
     const gpuUtil = window.aiLiveGpu || '96';
+    const mavRate = window.aiMavRate || '20.0';
+    const mavState = window.aiMavState || 'OFFBOARD_ACTIVE';
     const activeAction = (drone && drone.activePrimitive) || astarModel.active_primitive || 'DIRECT_CRUISE_VECTOR';
     const clearance = drone ? drone.clearanceMargin : 95;
 
     ctx.fillStyle = isAvoiding ? '#fbbf24' : '#94a3b8';
     ctx.font = '9px Inter';
-    ctx.fillText(`Action: ${activeAction} | 60Hz Replan`, 26, 49);
+    ctx.fillText(`Action: ${activeAction} | 60Hz Replan`, 26, 48);
 
     ctx.fillStyle = '#94a3b8';
-    ctx.fillText(`Clearance: ${clearance}m | Neural A* Loss: 0.2938 (27 Prim)`, 26, 63);
-    ctx.fillText(`Tactical Detector: F1 80.01% (${detLatency}ms) | Seg: 67.12% mIoU`, 26, 77);
-    ctx.fillText(`OpenSky Predictor: 91.73% F1 (100% Prec) | ATC: Sector Clear`, 26, 91);
-    ctx.fillText(`Hardware: RTX 5070 Laptop GPU (${gpuUtil}% Load | sm_120)`, 26, 105);
+    ctx.fillText(`Clearance: ${clearance}m | Neural A* Loss: 0.2938 (27 Prim)`, 26, 62);
+    ctx.fillText(`Tactical Detector: F1 80.01% (${detLatency}ms) | Seg: 67.12% mIoU`, 26, 76);
+    ctx.fillText(`OpenSky Predictor: 91.73% F1 (100% Prec) | ATC: Sector Clear`, 26, 90);
+    ctx.fillText(`MAVLink SITL Bridge: ${mavRate} Hz (UDP:14550) | Sup: ${mavState}`, 26, 104);
+    ctx.fillText(`Hardware: RTX 5070 Laptop GPU (${gpuUtil}% Load | sm_120)`, 26, 118);
 }
 
 // ─── Draw Range Rings (Disabled - No Circles) ───────────────────
@@ -1338,6 +1341,32 @@ async function fetchAIPerception() {
 
                 const latEl = document.getElementById('ai-opensky-latency');
                 if (latEl) latEl.textContent = `${pred.latency_ms} ms`;
+            }
+        }
+
+        // 4. MAVLink 20 Hz SITL Telemetry & Safety Supervisor
+        if (data.mavlink) {
+            const mav = data.mavlink;
+            window.aiMavRate = mav.stream_rate_hz || 20.0;
+            window.aiMavState = (mav.supervisor && mav.supervisor.state) || 'OFFBOARD_ACTIVE';
+
+            const rateEl = document.getElementById('mavlink-stream-rate');
+            if (rateEl) rateEl.textContent = `${mav.stream_rate_hz} Hz (${mav.target_rate_hz} Hz tgt)`;
+
+            const supEl = document.getElementById('mavlink-supervisor-state');
+            if (supEl && mav.supervisor) {
+                const acceptPct = mav.supervisor.acceptance_rate_pct || 100.0;
+                supEl.textContent = `${mav.supervisor.state} (${acceptPct}% Accept)`;
+                supEl.style.color = (mav.supervisor.state === 'OFFBOARD_ACTIVE') ? '#22c55e' : '#f59e0b';
+            }
+
+            const pktsEl = document.getElementById('mavlink-packets-count');
+            if (pktsEl) pktsEl.textContent = `${mav.packets_sent} pkts (${mav.heartbeats_sent} HB)`;
+
+            const velEl = document.getElementById('mavlink-command-vel');
+            if (velEl && mav.last_approved_setpoint) {
+                const sp = mav.last_approved_setpoint;
+                velEl.textContent = `Vx:${sp.vx} Vy:${sp.vy} Vz:${sp.vz} m/s`;
             }
         }
     } catch (err) {

@@ -482,6 +482,33 @@
                                 <div style="display: flex; justify-content: space-between;"><span>Jerk Bound (j_max):</span><span style="font-family: 'JetBrains Mono'; font-weight: 600;">8.0 m/s³</span></div>
                             </div>
                         </div>
+
+                        <!-- MAVLink 20 Hz SITL Telemetry Bridge -->
+                        <div class="param-group">
+                            <label class="param-label">MAVLink 20 Hz SITL Telemetry Bridge</label>
+                            <div style="font-size: 10px; color: #cbd5e1; display: flex; flex-direction: column; gap: 5px; background: var(--bg-surface); padding: 8px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); font-family: 'JetBrains Mono', monospace;">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Link Target:</span>
+                                    <span style="color: #38bdf8; font-weight: 600;">UDP 127.0.0.1:14550</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Stream Cadence:</span>
+                                    <span id="mavlink-stream-rate" style="color: #22c55e; font-weight: 600;">20.0 Hz (50ms)</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Safety Supervisor:</span>
+                                    <span id="mavlink-supervisor-state" style="color: #22c55e; font-weight: 600;">ARMED (100% Accept)</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Packets Sent:</span>
+                                    <span id="mavlink-packets-count" style="color: #facc15; font-weight: 600;">0 pkts</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Commanded Vel (NED):</span>
+                                    <span id="mavlink-command-vel" style="color: #38bdf8; font-weight: 600;">Vx: 0.0 Vy: 0.0 m/s</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </section>
             </div>

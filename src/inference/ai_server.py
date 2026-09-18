@@ -79,6 +79,18 @@ planner_model = None
 traffic_model = None
 device = "cpu"
 
+from src.interface.safety_supervisor import DeterministicSafetySupervisor, CandidateSetpoint
+from src.interface.mavlink_bridge import MAVLinkSITLBridge
+
+# Global MAVLink Bridge & Deterministic Safety Supervisor
+mavlink_supervisor = DeterministicSafetySupervisor()
+mavlink_bridge = MAVLinkSITLBridge(
+    target_ip="127.0.0.1",
+    target_port=14550,
+    rate_hz=20.0,
+    supervisor=mavlink_supervisor
+)
+
 def init_neural_models():
     global planner_model, traffic_model, device
     try:
@@ -114,6 +126,10 @@ def init_neural_models():
             t_model.eval()
             traffic_model = t_model
             print(f"[AI Service] OpenSky Airspace Traffic Predictor (91.73% F1) loaded on {device.upper()}")
+
+        # 3. Start MAVLink 20 Hz SITL Telemetry Bridge
+        mavlink_bridge.start()
+        print("[AI Service] MAVLink 20 Hz SITL Bridge online (Target: udp://127.0.0.1:14550)")
             
     except Exception as e:
         print(f"[AI Service] Warning loading models: {e}")
@@ -232,6 +248,37 @@ def get_live_ai_metrics():
         except Exception:
             pass
 
+    # Generate and feed companion flight setpoint into MAVLink Bridge & Safety Supervisor
+    base_speed = 8.5
+    if "EVADE" in active_primitive or "JINK" in active_primitive:
+        target_vx = base_speed * math.cos(t * 0.4) + 2.0
+        target_vy = base_speed * math.sin(t * 0.4) + 3.5
+        target_vz = -0.8 if "CLIMB" in active_primitive or "UP" in active_primitive else 0.0
+    else:
+        target_vx = base_speed * math.cos(t * 0.2)
+        target_vy = base_speed * math.sin(t * 0.2)
+        target_vz = 0.0
+
+    target_yaw = math.atan2(target_vy, target_vx)
+    drone_x = math.sin(t * 0.15) * 120.0
+    drone_y = math.cos(t * 0.15) * 80.0
+    drone_z = -25.0
+
+    mavlink_bridge.update_flight_plan(
+        CandidateSetpoint(
+            timestamp=t,
+            x=round(drone_x, 2),
+            y=round(drone_y, 2),
+            z=drone_z,
+            vx=round(target_vx, 2),
+            vy=round(target_vy, 2),
+            vz=round(target_vz, 2),
+            yaw=round(target_yaw, 3),
+            source_model=f"3d_kstar_{active_primitive.lower()}"
+        ),
+        obstacles=live_targets
+    )
+
     # GPU utilization query
     gpu_util = 96
     gpu_mem = 5620
@@ -303,7 +350,8 @@ def get_live_ai_metrics():
             "power_envelope": "75W Max-P"
         },
         "obstacles": live_targets,
-        "cooperative_traffic": live_cooperative
+        "cooperative_traffic": live_cooperative,
+        "mavlink": mavlink_bridge.get_status()
     }
 
 
@@ -312,6 +360,14 @@ class AIRequestHandler(BaseHTTPRequestHandler):
         if self.path in ("/api/ai/live", "/api/live-perception"):
             data = get_live_ai_metrics()
             body = json.dumps(data).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
+            self.end_headers()
+            self.wfile.write(body)
+        elif self.path in ("/api/mavlink/status", "/api/mavlink/live"):
+            body = json.dumps(mavlink_bridge.get_status()).encode("utf-8")
             self.send_response(200)
             self.send_header("Content-Type", "application/json; charset=utf-8")
             self.send_header("Access-Control-Allow-Origin", "*")
