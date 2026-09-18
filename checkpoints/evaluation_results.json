@@ -2,16 +2,24 @@
   "segmentation": {
     "model": "Strategic Terrain Segmenter",
     "parameters": 2357526,
-    "pixel_accuracy_pct": 66.85,
-    "miou_pct": 51.16,
-    "per_class_iou_pct": {
-      "Land": 57.45,
-      "Water": 89.47,
-      "Building": 36.81,
-      "Vegetation": 34.62,
-      "Road": 37.45
+    "pixel_accuracy_pct": 71.56,
+    "mean_f1_score_pct": 67.12,
+    "miou_pct": 52.58,
+    "per_class_f1_pct": {
+      "Land": 77.89,
+      "Water": 90.4,
+      "Building": 58.63,
+      "Vegetation": 47.82,
+      "Road": 60.84
     },
-    "eval_time_sec": 2.65
+    "per_class_iou_pct": {
+      "Land": 63.78,
+      "Water": 82.49,
+      "Building": 41.47,
+      "Vegetation": 31.43,
+      "Road": 43.72
+    },
+    "eval_time_sec": 5.87
   },
   "detection": {
     "model": "Tactical Aerial Object Detector",
@@ -22,6 +30,6 @@
     "total_true_positives": 12330,
     "total_false_positives": 147775,
     "total_false_negatives": 0,
-    "eval_time_sec": 8.01
+    "eval_time_sec": 11.78
   }
 }

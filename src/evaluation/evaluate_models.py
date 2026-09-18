@@ -65,6 +65,7 @@ def evaluate_segmenter(ckpt_path: str, fold: int = 1, crop_size: int = 512, devi
     elapsed = time.time() - t0
     
     ious = {}
+    f1s = {}
     for c_id, name in enumerate(TERRAIN_CLASSES):
         tp = conf_matrix[c_id, c_id]
         fp = np.sum(conf_matrix[:, c_id]) - tp
@@ -73,24 +74,32 @@ def evaluate_segmenter(ckpt_path: str, fold: int = 1, crop_size: int = 512, devi
         iou = float(tp / denom) if denom > 0 else 0.0
         ious[name] = round(iou * 100.0, 2)
         
+        denom_f1 = 2 * tp + fp + fn
+        f1 = float(2 * tp / denom_f1) if denom_f1 > 0 else 0.0
+        f1s[name] = round(f1 * 100.0, 2)
+        
     total_correct = np.diag(conf_matrix).sum()
     total_valid = conf_matrix.sum()
     pixel_acc = float(total_correct / total_valid * 100.0) if total_valid > 0 else 0.0
     miou = float(np.mean(list(ious.values())))
+    mean_f1 = float(np.mean(list(f1s.values())))
     
     results = {
         "model": "Strategic Terrain Segmenter",
         "parameters": sum(p.numel() for p in model.parameters()),
         "pixel_accuracy_pct": round(pixel_acc, 2),
+        "mean_f1_score_pct": round(mean_f1, 2),
         "miou_pct": round(miou, 2),
+        "per_class_f1_pct": f1s,
         "per_class_iou_pct": ious,
         "eval_time_sec": round(elapsed, 2)
     }
     
-    print(f"Pixel Accuracy: {pixel_acc:.2f}%")
-    print(f"Mean IoU (mIoU): {miou:.2f}%")
-    for k, v in ious.items():
-        print(f"  - {k:12s}: {v:.2f}%")
+    print(f"Pixel Accuracy:     {pixel_acc:.2f}%")
+    print(f"Mean F1-Score (Dice): {mean_f1:.2f}%")
+    print(f"Mean IoU (mIoU):    {miou:.2f}%")
+    for k in ious.keys():
+        print(f"  - {k:12s}: F1 = {f1s[k]:.2f}% | IoU = {ious[k]:.2f}%")
     return results
 
 
