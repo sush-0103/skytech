@@ -140,6 +140,121 @@ const server = http.createServer((req, res) => {
         return;
     }
 
+    // API endpoint to get certified checkpoints
+    if (req.url === '/api/checkpoints') {
+        const aiReq = http.get('http://127.0.0.1:5001/api/checkpoints', (aiRes) => {
+            res.writeHead(aiRes.statusCode, {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            });
+            aiRes.pipe(res);
+        });
+        aiReq.on('error', () => {
+            const fallbackCheckpoints = [
+                {"id": "CP-ALPHA", "name": "Alpha (Northeast Hub)", "x": 300.0, "y": 400.0, "z": -6.0, "desc": "Northeast Helipad Hub (Default Goal)"},
+                {"id": "CP-BRAVO", "name": "Bravo (Commercial Plaza)", "x": 220.0, "y": -180.0, "z": -6.0, "desc": "Downtown Commercial Plaza"},
+                {"id": "CP-CHARLIE", "name": "Charlie (Coastal Reach)", "x": -50.0, "y": 320.0, "z": -6.0, "desc": "Western Coastal Navigation Corridor"},
+                {"id": "CP-ECHO", "name": "Echo (South Transit Hub)", "x": 30.0, "y": -350.0, "z": -6.0, "desc": "South Central Hub"},
+                {"id": "CP-FOXTROT", "name": "Foxtrot (North Bay)", "x": 350.0, "y": 100.0, "z": -6.0, "desc": "Northeast Bay Overlook"},
+                {"id": "CP-GOLF", "name": "Golf (East Boulevard)", "x": 50.0, "y": 350.0, "z": -6.0, "desc": "East Aviation Air Corridor"}
+            ];
+            res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+            res.end(JSON.stringify({ checkpoints: fallbackCheckpoints }));
+        });
+        return;
+    }
+
+    // API endpoint for AI route planning (Path A to Path B)
+    if (req.url.startsWith('/api/plan-route')) {
+        const urlObj = new URL(req.url, `http://localhost:${PORT}`);
+        const proxyReq = http.request({
+            host: '127.0.0.1',
+            port: 5001,
+            path: `/api/plan-route${urlObj.search}`,
+            method: req.method,
+            headers: {
+                ...req.headers,
+                host: '127.0.0.1:5001'
+            }
+        }, (proxyRes) => {
+            res.writeHead(proxyRes.statusCode, {
+                ...proxyRes.headers,
+                'Access-Control-Allow-Origin': '*'
+            });
+            proxyRes.pipe(res);
+        });
+
+        proxyReq.on('error', (e) => {
+            console.warn('[Proxy Plan Route] AI Server not reachable; entering fail-closed fallback:', e.message);
+            const gx = parseFloat(urlObj.searchParams.get('goal_x')) || 300.0;
+            const gy = parseFloat(urlObj.searchParams.get('goal_y')) || 400.0;
+            const sx = parseFloat(urlObj.searchParams.get('start_x')) || -360.0;
+            const sy = parseFloat(urlObj.searchParams.get('start_y')) || -400.0;
+            const alt = parseFloat(urlObj.searchParams.get('altitude')) || 6.0;
+
+            const isCertifiedSmokeRoute = Math.hypot(sx + 360, sy + 400) < 1 && Math.hypot(gx - 300, gy - 400) < 1;
+            if (!isCertifiedSmokeRoute) {
+                res.writeHead(503, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+                return res.end(JSON.stringify({
+                    status: 'PLANNER_OFFLINE',
+                    error: 'A new route cannot be certified while the collision-aware planner is offline.',
+                    safety_supervisor: 'FAIL_CLOSED'
+                }));
+            }
+
+            // The only offline fallback is the checked Dubai smoke-test route saved by osm_world.py.
+            const smoke = JSON.parse(fs.readFileSync(path.join(__dirname, 'worlds', 'dubai_osm', 'smoke_result.json'), 'utf-8'));
+            const waypoints = smoke.route_waypoints_ned.map(p => [p[0], p[1], -alt]);
+            const points = [];
+            const speed = 4.2;
+            const dt = 0.5;
+            for (let segment = 0; segment < waypoints.length - 1; segment++) {
+                const a = waypoints[segment];
+                const b = waypoints[segment + 1];
+                const dn = b[0] - a[0];
+                const de = b[1] - a[1];
+                const length = Math.hypot(dn, de);
+                const steps = Math.max(1, Math.ceil(length / (speed * dt)));
+                for (let i = 0; i < steps; i++) {
+                    const u = i / steps;
+                    points.push({
+                        t: points.length * dt,
+                        position: [a[0] + dn * u, a[1] + de * u, -alt],
+                        velocity: [dn / Math.max(length, 1e-6) * speed, de / Math.max(length, 1e-6) * speed, 0],
+                        heading: Math.atan2(-dn, de),
+                        primitive: 'OFFLINE_PREVALIDATED_ROUTE',
+                        safety_score_pct: null,
+                        clearance_m: smoke.horizontal_clearance_m || 6,
+                        cross_track_m: 0
+                    });
+                }
+            }
+            points.push({ ...points[points.length - 1], t: points.length * dt, position: waypoints[waypoints.length - 1], velocity: [0, 0, 0] });
+
+            res.writeHead(200, {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            });
+            res.end(JSON.stringify({
+                status: "STORED_VALIDATED_ROUTE",
+                start: [sx, sy],
+                goal: [gx, gy],
+                waypoints,
+                points: points,
+                total_distance_m: smoke.route_length_m,
+                estimated_flight_time_s: smoke.route_length_m / speed,
+                safety_supervisor: "OFFLINE_PREVALIDATED_ONLY"
+            }));
+        });
+
+        if (req.method === 'POST') {
+            req.pipe(proxyReq);
+        } else {
+            proxyReq.end();
+        }
+        return;
+    }
+
     // API endpoint for latest SITL flight trace data
     if (req.url === '/api/flight-trace') {
         const runtimeDir = path.join(__dirname, 'runtime');

@@ -96,6 +96,195 @@
           <span class="chip-val">UTC+4 (Dubai)</span>
         </div>
       </div>
+
+      <!-- Settings Menu & Map Controls Dropdown -->
+      <div class="settings-menu-container">
+        <button id="btn-settings-menu" class="btn-header-settings" title="Map & Simulation Settings">
+          <span class="settings-icon">⚙️</span>
+          <span class="settings-title">SETTINGS</span>
+          <span class="settings-badge-mode font-mono" id="header-active-mode-badge">STANDARD</span>
+        </button>
+
+        <!-- Floating Settings Dropdown Panel -->
+        <div id="settings-menu-dropdown" class="settings-dropdown-panel" style="display: none;">
+          <div class="settings-dropdown-header">
+            <div class="s-hdr-title-box">
+              <span class="s-hdr-icon">⚙️</span>
+              <span class="s-hdr-title font-mono">SIMULATION & MAP SETTINGS</span>
+            </div>
+            <button id="btn-close-settings" class="btn-close-settings" title="Close Settings">✕</button>
+          </div>
+
+          <div class="settings-dropdown-body">
+            <!-- SECTION 1: MAP DISPLAY MODE -->
+            <div class="settings-section">
+              <div class="settings-section-title">
+                <span>🗺️ BASE MAP MODE</span>
+                <span class="sec-badge font-mono">REAL-TIME</span>
+              </div>
+              <div class="mode-cards-grid">
+                <!-- 1. Real Standard Mode -->
+                <div class="mode-card active" id="card-mode-standard" data-mode="standard">
+                  <div class="mode-card-header">
+                    <span class="mode-radio-diamond"></span>
+                    <span class="mode-name">Real Standard</span>
+                    <span class="mode-tag text-emerald font-mono">OSM Carto</span>
+                  </div>
+                  <div class="mode-desc">Standard OpenStreetMap cartographic grid, Sheikh Zayed Rd highway amber/gold, Dubai canal, park greens, clean architectural building prisms.</div>
+                </div>
+
+                <!-- 2. Aerial Satellite Mode -->
+                <div class="mode-card" id="card-mode-satellite" data-mode="satellite">
+                  <div class="mode-card-header">
+                    <span class="mode-radio-diamond"></span>
+                    <span class="mode-name">Aerial Satellite</span>
+                    <span class="mode-tag text-cyan font-mono">Photoreal</span>
+                  </div>
+                  <div class="mode-desc">High-altitude satellite surface textures, desert earth tones, realistic asphalt highway, translucent buildings.</div>
+                </div>
+
+                <!-- 3. Blender 2.5D Mode -->
+                <div class="mode-card" id="card-mode-blender" data-mode="blender">
+                  <div class="mode-card-header">
+                    <span class="mode-radio-diamond"></span>
+                    <span class="mode-name">Blender 2.5D</span>
+                    <span class="mode-tag text-amber font-mono">Digital Twin</span>
+                  </div>
+                  <div class="mode-desc">Original architectural cyber gold building footprints with dark navy terrain and asphalt roads.</div>
+                </div>
+
+                <!-- 4. Tactical Night Mode -->
+                <div class="mode-card" id="card-mode-tactical" data-mode="tactical">
+                  <div class="mode-card-header">
+                    <span class="mode-radio-diamond"></span>
+                    <span class="mode-name">Tactical Night</span>
+                    <span class="mode-tag text-purple font-mono">High Contrast</span>
+                  </div>
+                  <div class="mode-desc">Cyber black surface with glowing cyan wireframe building edges, neon trajectory, and dark airspace.</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- SECTION 2: MAP LAYERS (TOGGLE SWITCHES) -->
+            <div class="settings-section">
+              <div class="settings-section-title">
+                <span>📑 MAP LAYERS & OVERLAYS</span>
+                <span class="sec-badge font-mono">TOGGLE</span>
+              </div>
+              <div class="layer-toggles-list">
+                <!-- Layer 1: 3D Buildings -->
+                <div class="layer-toggle-row">
+                  <div class="layer-info">
+                    <span class="layer-title">3D Buildings & Heights</span>
+                    <span class="layer-sub">158 extruded architectural structures</span>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="toggle-layer-buildings" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+
+                <!-- Layer 2: Restricted Airspace -->
+                <div class="layer-toggle-row">
+                  <div class="layer-info">
+                    <span class="layer-title">Restricted Airspace Geo-fence</span>
+                    <span class="layer-sub">NFZ red no-fly box (140m × 170m)</span>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="toggle-layer-restricted" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+
+                <!-- Layer 3: AI Route Trajectory -->
+                <div class="layer-toggle-row">
+                  <div class="layer-info">
+                    <span class="layer-title">AI Flight Route & Trajectory</span>
+                    <span class="layer-sub">Kinematic neural A* green polyline</span>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="toggle-layer-route" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+
+                <!-- Layer 4: Direct Line Guideline -->
+                <div class="layer-toggle-row">
+                  <div class="layer-info">
+                    <span class="layer-title">Direct Vector Guideline</span>
+                    <span class="layer-sub">Dashed reference vector A ➔ B</span>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="toggle-layer-directline" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+
+                <!-- Layer 5: Traffic Safety Dome -->
+                <div class="layer-toggle-row">
+                  <div class="layer-info">
+                    <span class="layer-title">Air Traffic Radar Safety Dome</span>
+                    <span class="layer-sub">Dynamic separation volume sphere</span>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="toggle-layer-trafficdome" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+
+                <!-- Layer 6: Street & Landmark Labels -->
+                <div class="layer-toggle-row">
+                  <div class="layer-info">
+                    <span class="layer-title">Street & Landmark Labels</span>
+                    <span class="layer-sub">Sheikh Zayed Rd, Financial Centre, Parks</span>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="toggle-layer-labels" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- SECTION 3: CAMERA PERSPECTIVE -->
+            <div class="settings-section">
+              <div class="settings-section-title">
+                <span>🎥 CAMERA PERSPECTIVE</span>
+              </div>
+              <div class="camera-perspective-buttons">
+                <button class="cam-persp-btn active" id="btn-cam-3d">
+                  <span>📐 3D Orbit Perspective</span>
+                </button>
+                <button class="cam-persp-btn" id="btn-cam-2d">
+                  <span>🗺️ 2D Top-Down Nadir</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- SECTION 4: DRONE VISUAL SCALE (MISSION PLAN) -->
+            <div class="settings-section">
+              <div class="settings-section-title">
+                <span>🛸 DRONE SCALE (MISSION PLAN)</span>
+                <span class="sec-badge font-mono text-cyan" id="drone-scale-badge">1.0x</span>
+              </div>
+              <div class="drone-scale-control-box">
+                <div class="drone-scale-slider-row">
+                  <span class="scale-limit font-mono">0.5x</span>
+                  <input type="range" id="slider-drone-scale" class="drone-scale-slider" min="0.5" max="5.0" step="0.1" value="1.0" title="Adjust 3D Drone Size in Mission Plan">
+                  <span class="scale-limit font-mono">5.0x</span>
+                </div>
+                <div class="drone-scale-presets-grid">
+                  <button class="drone-scale-chip" data-scale="0.5">0.5x Mini</button>
+                  <button class="drone-scale-chip active" data-scale="1.0">1.0x Normal</button>
+                  <button class="drone-scale-chip" data-scale="2.0">2.0x Large</button>
+                  <button class="drone-scale-chip" data-scale="3.0">3.0x XL</button>
+                  <button class="drone-scale-chip" data-scale="5.0">5.0x Max</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </header>
 
@@ -123,6 +312,7 @@
         </div>
 
         <div class="camera-viewport-box" id="camera-viewport">
+          <canvas id="camera-scene-canvas" aria-label="Synchronized simulated forward camera"></canvas>
           <canvas id="camera-hud-canvas"></canvas>
 
           <!-- Top Tactical Evasion Decision HUD Banner -->
@@ -164,7 +354,8 @@
             <div class="manifold-item" id="mf-top"><span class="mf-dir">TOP:</span> <span class="mf-val">+8m</span> <span class="mf-status mf-feasible">OK</span></div>
           </div>
 
-          <!-- Tactical HUD Flight Mode Chip -->
+          <!-- Tactical HUD Flight Mode Chip & Coordinates Readout -->
+          <div class="camera-pose-readout-bar font-mono" id="camera-pose-readout">N -360.0 · E -400.0 · AGL 6.0m · HDG 90°</div>
           <div class="camera-hud-status-tag font-mono">
             <span class="status-pulse-dot"></span> SENSOR POD: FORWARD EO/IR
           </div>
@@ -178,9 +369,31 @@
           <div class="card-title-group">
             <h2 class="card-title">Semantic Terrain Mask</h2>
           </div>
+          <span class="badge-pill font-mono" id="semantic-frame-status">CLASS RASTER · 20 Hz</span>
         </div>
-        <div class="terrain-container">
-          <img id="terrain-image" src="/data_processed/terrain_mask_clean.jpg" alt="Dubai Semantic Terrain Segmentation">
+        <div class="terrain-container" id="semantic-viewport">
+          <canvas id="semantic-canvas" aria-label="3D semantic segmentation class raster"></canvas>
+          
+          <!-- Semantic Class Legend -->
+          <div class="semantic-class-legend">
+            <div class="legend-row">
+              <span class="legend-box" style="background:#7057d9;"></span><span class="legend-txt">Road</span>
+            </div>
+            <div class="legend-row">
+              <span class="legend-box" style="background:#e39a43;"></span><span class="legend-txt">Building</span>
+            </div>
+            <div class="legend-row">
+              <span class="legend-box" style="background:#4fbf72;"></span><span class="legend-txt">Vegetation</span>
+            </div>
+            <div class="legend-row">
+              <span class="legend-box" style="background:#58b8e8;"></span><span class="legend-txt">Sky</span>
+            </div>
+            <div class="legend-row">
+              <span class="legend-box" style="background:#94a3b8;"></span><span class="legend-txt">Other</span>
+            </div>
+          </div>
+
+          <div class="semantic-meta-tag font-mono" id="semantic-frame-meta">FRAME 0001 · SAME POSE · SIMULATION LABELS</div>
         </div>
       </div>
 
@@ -351,16 +564,81 @@
             <span class="mission-region font-mono">(dubai_2_5d.blend)</span>
           </div>
           <div class="mission-header-controls">
-            <div class="view-switch">
-              <button class="switch-btn active" id="btn-switch-blender">Blender 2.5D</button>
-              <button class="switch-btn" id="btn-switch-aerial">Aerial Satellite</button>
+            <div class="view-switch" id="map-mode-quick-switch">
+              <button class="switch-btn active" id="btn-mode-standard" data-mode="standard" title="OpenStreetMap Cartographic Standard">🗺️ Standard</button>
+              <button class="switch-btn" id="btn-mode-satellite" data-mode="satellite" title="Aerial Photoreal Satellite">🛰️ Satellite</button>
+              <button class="switch-btn" id="btn-mode-blender" data-mode="blender" title="Blender 2.5D Digital Twin">🏢 Blender 2.5D</button>
+              <button class="switch-btn" id="btn-mode-tactical" data-mode="tactical" title="Tactical Night HUD">⚡ Tactical</button>
+              <button class="switch-btn switch-settings-btn" id="btn-quick-settings" title="Open Map Settings">⚙️</button>
             </div>
+            <!-- Quick Drone Size Stepper on Mission Header -->
+            <div class="drone-size-quick-pill" title="Drone Model Scale (Mission Plan)">
+              <span class="drone-size-label font-mono">DRONE:</span>
+              <button class="drone-size-step-btn font-mono" id="btn-drone-size-down" title="Decrease Drone Size">−</button>
+              <span class="drone-size-display font-mono text-cyan" id="quick-drone-size-text">1.0x</span>
+              <button class="drone-size-step-btn font-mono" id="btn-drone-size-up" title="Increase Drone Size">+</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Checkpoint & Destination Navigation Toolbar (Path A ➔ Path B) -->
+        <div class="destination-control-toolbar font-mono">
+          <div class="dest-row-top">
+            <div class="dest-label-group">
+              <span class="dest-pill font-mono">INTERACTIVE MISSION PLAN</span>
+              <span class="dest-target-lbl">TARGET:</span>
+              <span class="dest-target-name text-cyan" id="disp-dest-name">Alpha (Northeast Hub)</span>
+              <span class="dest-coords text-muted" id="disp-dest-coords">[300.0, 400.0]</span>
+            </div>
+            <div class="dest-metrics-group">
+              <span class="dest-metric-item"><span class="m-lbl">Dist:</span> <span class="m-val text-emerald" id="disp-dest-dist">1.28 km</span></span>
+              <span class="dest-metric-item"><span class="m-lbl">ETA:</span> <span class="m-val text-amber" id="disp-dest-eta">~5.1 min</span></span>
+              <span class="dest-metric-item"><span class="m-lbl">AI Kinematics:</span> <span class="m-val text-purple" id="disp-dest-primitive">ALTITUDE_SEPARATION_UP</span></span>
+            </div>
+          </div>
+          <div class="dest-row-bottom">
+            <span class="dest-presets-lbl">PRESETS:</span>
+            <div class="dest-presets-container" id="dest-presets-container">
+              <button class="cp-preset-chip active" data-x="300" data-y="400" data-name="Alpha (Northeast Hub)">Alpha [300, 400]</button>
+              <button class="cp-preset-chip" data-x="220" data-y="-180" data-name="Bravo (Commercial Plaza)">Bravo [220, -180]</button>
+              <button class="cp-preset-chip" data-x="-50" data-y="320" data-name="Charlie (Coastal Reach)">Charlie [-50, 320]</button>
+              <button class="cp-preset-chip" data-x="30" data-y="-350" data-name="Echo (Industrial West)">Echo [30, -350]</button>
+              <button class="cp-preset-chip" data-x="350" data-y="100" data-name="Foxtrot (Financial Tower)">Foxtrot [350, 100]</button>
+              <button class="cp-preset-chip" data-x="50" data-y="350" data-name="Golf (Bay Gateway)">Golf [50, 350]</button>
+            </div>
+            <span class="dest-tip font-mono">📍 Click anywhere on 3D map to target</span>
           </div>
         </div>
 
         <!-- Canvas Container with Interactive Map HUD -->
         <div class="mission-viewport" id="mission-viewport">
           <canvas id="mission-canvas"></canvas>
+
+          <!-- Interactive Target Decision Card (Fly or Cancel) -->
+          <div class="target-decision-card" id="target-decision-card" style="display: none;">
+            <div class="dec-header">
+              <span class="dec-tag font-mono">TARGET ACQUIRED</span>
+              <span class="dec-title font-mono" id="dec-title">Destination</span>
+            </div>
+            <div class="dec-details font-mono">
+              <div class="dec-item">
+                <span class="dec-lbl">COORDS:</span>
+                <span class="dec-val text-cyan" id="dec-coords">[0.0, 0.0, -6.0m]</span>
+              </div>
+              <div class="dec-item">
+                <span class="dec-lbl">DISTANCE:</span>
+                <span class="dec-val text-emerald" id="dec-dist">0 m</span>
+              </div>
+              <div class="dec-item">
+                <span class="dec-lbl">FLIGHT ETA:</span>
+                <span class="dec-val text-amber" id="dec-eta">0 s</span>
+              </div>
+            </div>
+            <div class="dec-actions">
+              <button class="dec-btn dec-btn-fly font-mono" id="btn-confirm-fly">✈️ FLY</button>
+              <button class="dec-btn dec-btn-cancel font-mono" id="btn-cancel-target">✕ CANCEL</button>
+            </div>
+          </div>
 
           <!-- Floating Playback Bar (Bottom) -->
           <div class="mission-playback-bar">
